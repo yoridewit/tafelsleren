@@ -49,7 +49,7 @@ async function tts(text: string): Promise<Buffer> {
       }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
-    if ((res.status === 429 || res.status >= 500) && attempt < 5) {
+    if ((res.status === 409 || res.status === 429 || res.status >= 500) && attempt < 5) {
       await new Promise((r) => setTimeout(r, attempt * 2000));
       continue;
     }
@@ -67,6 +67,8 @@ function writeManifest() {
   return ids.length;
 }
 
+let done = 0;
+
 async function main() {
   if (args.includes('--voices')) return listVoices();
   mkdirSync(OUT_DIR, { recursive: true });
@@ -75,7 +77,6 @@ async function main() {
   );
   const chars = todo.reduce((n, [, t]) => n + t.length, 0);
   console.log(`${todo.length} zinnen (${chars} tekens) met stem ${voiceId}, model ${model}`);
-  let done = 0;
   // Twee tegelijk: snel genoeg, en binnen de limiet van het gratis plan.
   const queue = [...todo];
   await Promise.all(
