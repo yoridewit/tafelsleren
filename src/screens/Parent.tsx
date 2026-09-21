@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState, type ChangeEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { TopBar } from '../components/TopBar';
 import { ISLANDS, factKey } from '../logic/facts';
 import { factStatus } from '../logic/leitner';
@@ -7,6 +7,7 @@ import { currentStreak } from '../logic/streak';
 import { addDays } from '../logic/dates';
 import { parseSave } from '../logic/storage';
 import { useSave } from '../state/store';
+import { dutchVoices, onVoicesChanged, setPreferredVoice, speak } from '../audio';
 import type { Go } from '../nav';
 
 const STATUS_TEXT = { nieuw: 'Nog niet geoefend', oefenen: 'Aan het oefenen', bijna: 'Bijna', gekend: 'Kent ze uit het hoofd' };
@@ -18,6 +19,13 @@ export function Parent({ go }: { go: Go }) {
   const [msg, setMsg] = useState('');
   const [detail, setDetail] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [voices, setVoices] = useState(dutchVoices);
+  useEffect(() => onVoicesChanged(() => setVoices(dutchVoices())), []);
+
+  const testVoice = (uri: string | null) => {
+    setPreferredVoice(uri);
+    speak('Hoi! Zeven keer zes is tweeënveertig. Goed zo!', true);
+  };
 
   // Kalender: 8 weken, beginnend op maandag.
   const dow = (new Date().getDay() + 6) % 7;
@@ -182,6 +190,40 @@ export function Parent({ go }: { go: Go }) {
             />
             Sommen voorlezen
           </label>
+          <div className="voice-row">
+            <select
+              className="voice-select"
+              value={save.settings.voice ?? ''}
+              onChange={(e) => {
+                const voice = e.target.value || null;
+                dispatch({ type: 'settings', patch: { voice } });
+                testVoice(voice);
+              }}
+              aria-label="voorleesstem"
+            >
+              <option value="">Automatisch (beste stem)</option>
+              {voices.map((v) => (
+                <option key={v.voiceURI} value={v.voiceURI}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-white btn-small" onClick={() => testVoice(save.settings.voice)}>
+              🔊 Test
+            </button>
+          </div>
+          {voices.length === 0 && (
+            <p className="note">
+              Geen Nederlandse stem gevonden op dit apparaat, dus de app leest (nog) niets voor. Installeer er een zoals
+              hieronder beschreven.
+            </p>
+          )}
+          <p className="muted">
+            Robotstem? Op een iPad kun je gratis een natuurlijkere stem downloaden: Instellingen → Toegankelijkheid →
+            Gesproken materiaal → Stemmen → Nederlands → kies bijv. "Claire" of "Xander" (verbeterd of premium). Op Android:
+            Instellingen → Tekst-naar-spraak → Google, en download "Nederlands". Herstart daarna de app en kies de stem
+            hierboven.
+          </p>
           <div className="row">
             <input className="text-input small" value={child} onChange={(e) => setChild(e.target.value)} aria-label="naam kind" />
             <input className="text-input small" value={elf} onChange={(e) => setElf(e.target.value)} aria-label="naam elfje" />

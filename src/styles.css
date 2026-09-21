@@ -1151,6 +1151,23 @@ h2 {
   width: 28px;
   height: 28px;
 }
+.voice-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.voice-select {
+  font: inherit;
+  font-size: 1rem;
+  flex: 1;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 2px solid #ddd6fe;
+  padding: 0 10px;
+  background: white;
+  color: var(--ink);
+  min-width: 0;
+}
 .tips {
   margin: 0;
   padding-left: 1.2em;

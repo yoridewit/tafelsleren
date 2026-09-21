@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useReducer, type Dispatch, type R
 import { reducer, initialState, type Action, type AppState } from './reducer';
 import { loadSave, writeSave } from '../logic/storage';
 import { dayKey } from '../logic/dates';
-import { setAudioPrefs } from '../audio';
+import { setAudioPrefs, setPreferredVoice } from '../audio';
 
 interface Store {
   state: AppState;
@@ -17,7 +17,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => writeSave(state.save), [state.save]);
   useEffect(() => {
-    if (state.save) setAudioPrefs(state.save.settings.sound, state.save.settings.speech);
+    if (!state.save) return;
+    setAudioPrefs(state.save.settings.sound, state.save.settings.speech);
+    setPreferredVoice(state.save.settings.voice);
   }, [state.save?.settings]);
 
   return <StoreContext.Provider value={{ state, dispatch, today: dayKey() }}>{children}</StoreContext.Provider>;

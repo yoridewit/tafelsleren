@@ -84,7 +84,7 @@ describe('reducer', () => {
     let s = reducer(started(), { type: 'unlock', island: 4 });
     expect(s.save!.unlocked).toEqual([0, 4]);
     s = reducer(s, { type: 'settings', patch: { sound: false } });
-    expect(s.save!.settings).toEqual({ sound: false, speech: true });
+    expect(s.save!.settings).toEqual({ sound: false, speech: true, voice: null });
     s = reducer(s, { type: 'discovered', island: 2 });
     s = reducer(s, { type: 'discovered', island: 2 });
     expect(s.save!.discovered).toEqual([2]);

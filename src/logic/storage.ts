@@ -8,6 +8,8 @@ export const STORAGE_KEY = 'tafels-elfje-v1';
 export interface Settings {
   sound: boolean;
   speech: boolean;
+  /** voiceURI van de gekozen voorleesstem; null = automatisch de natuurlijkste Nederlandse stem. */
+  voice: string | null;
 }
 
 export interface SaveData {
@@ -45,7 +47,7 @@ export function emptySave(childName = '', elfName = ''): SaveData {
     discovered: [],
     unlocked: [0],
     speedRecord: 0,
-    settings: { sound: true, speech: true },
+    settings: { sound: true, speech: true, voice: null },
     createdAt: new Date().toISOString(),
   };
 }
@@ -107,6 +109,7 @@ export function parseSave(raw: unknown): SaveData | null {
     settings: {
       sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
       speech: typeof settings.speech === 'boolean' ? settings.speech : base.settings.speech,
+      voice: typeof settings.voice === 'string' ? settings.voice : null,
     },
     createdAt: str(raw.createdAt, base.createdAt),
   };
