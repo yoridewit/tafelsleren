@@ -6,8 +6,6 @@ import { useSave } from '../state/store';
 import { sound } from '../audio';
 import type { Go } from '../nav';
 
-/** Slingerpad: rij 1 van links naar rechts, rij 2 terug, rij 3 weer heen. */
-const SNAKE = [0, 1, 2, 5, 4, 3, 6, 7, 8];
 
 export function Home({ go }: { go: Go }) {
   const { save, today } = useSave();
@@ -54,14 +52,13 @@ export function Home({ go }: { go: Go }) {
               disabled={!speedReady}
               title={speedReady ? '' : 'Leer eerst 10 sommen'}
             >
-              ⚡ Snelspel
+              ⚡ Snelspel {!speedReady && '🔒'}
             </button>
           </div>
         </aside>
 
         <main className="map">
-          {SNAKE.map((i) => {
-            const isl = ISLANDS[i];
+          {ISLANDS.map((isl, i) => {
             const open = save.unlocked.includes(i);
             const p = islandProgress(i, save.facts);
             const pct = Math.round(((p.known + p.almost * 0.5) / p.total) * 100);

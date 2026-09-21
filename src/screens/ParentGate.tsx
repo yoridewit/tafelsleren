@@ -26,8 +26,8 @@ export function ParentGate({ go }: { go: Go }) {
           <NumPad
             value={input}
             onChange={setInput}
-            onSubmit={() => {
-              if (Number(input) === q.a * q.b) go({ name: 'parent' });
+            onSubmit={(value) => {
+              if (Number(value) === q.a * q.b) go({ name: 'parent' });
               else {
                 setWrong(true);
                 setInput('');

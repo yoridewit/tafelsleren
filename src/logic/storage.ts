@@ -67,6 +67,7 @@ function parseFact(v: unknown): FactState | null {
     fastDays: strArr(v.fastDays),
     seen: num(v.seen, 0),
     wrong: num(v.wrong, 0),
+    ...(typeof v.promoted === 'string' ? { promoted: v.promoted } : {}),
   };
 }
 

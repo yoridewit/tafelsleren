@@ -6,6 +6,8 @@ export interface FactState {
   fastDays: string[]; // laatste dagen waarop snel én goed
   seen: number;
   wrong: number;
+  /** Dag waarop de som voor het laatst een doos omhoog ging (max. één stap per dag). */
+  promoted?: string;
 }
 
 export const FAST_MS = 4000;
@@ -18,10 +20,15 @@ export function newFactState(): FactState {
 export function applyAnswer(s: FactState, correct: boolean, ms: number, today: string): FactState {
   let box: number;
   let fastDays = s.fastDays;
+  let promoted = s.promoted;
   if (!correct) box = 1;
   else if (ms <= FAST_MS) {
-    box = Math.min(5, Math.max(1, s.box) + 1);
     if (!fastDays.includes(today)) fastDays = [...fastDays, today].slice(-5);
+    if (promoted === today) box = Math.max(1, s.box);
+    else {
+      box = Math.min(5, Math.max(1, s.box) + 1);
+      promoted = today;
+    }
   } else box = Math.max(1, s.box);
   return {
     box,
@@ -29,6 +36,7 @@ export function applyAnswer(s: FactState, correct: boolean, ms: number, today: s
     fastDays,
     seen: s.seen + 1,
     wrong: s.wrong + (correct ? 0 : 1),
+    ...(promoted ? { promoted } : {}),
   };
 }
 

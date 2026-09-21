@@ -22,14 +22,14 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
     sound.coin();
   }, []);
 
-  const title = ratio >= 0.9 ? 'Fantastisch!' : ratio >= 0.6 ? 'Goed gedaan!' : 'Knap dat je het hebt geprobeerd!';
+  const title = ratio >= 0.9 ? 'Fantastisch' : ratio >= 0.6 ? 'Goed gedaan' : 'Knap geoefend';
 
   return (
     <div className="screen result">
       <div className="result-card card">
         <Elf wearing={save.wearing} mood="juichen" size={180} className="bounce" />
         <h1>
-          {title} {save.childName && `${save.childName}!`}
+          {title}, {save.childName}!
         </h1>
         <p className="big">
           {correct} van de {total} sommen in één keer goed

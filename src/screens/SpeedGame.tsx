@@ -45,8 +45,8 @@ export function SpeedGame({ go }: { go: Go }) {
     }
   }, [left, phase, dispatch, today]);
 
-  const submit = () => {
-    if (Number(input) === q.a * q.b) {
+  const submit = (value: string) => {
+    if (Number(value) === q.a * q.b) {
       sound.correct();
       scoreRef.current += 1;
       setScore(scoreRef.current);

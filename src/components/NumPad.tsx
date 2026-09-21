@@ -1,22 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { sound } from '../audio';
 
 interface Props {
   value: string;
   onChange: (v: string) => void;
-  onSubmit: () => void;
+  onSubmit: (value: string) => void;
   disabled?: boolean;
   maxLength?: number;
 }
 
 export function NumPad({ value, onChange, onSubmit, disabled = false, maxLength = 3 }: Props) {
+  // Ref zodat snel achter elkaar getypte cijfers niet met een oude waarde werken.
+  const current = useRef(value);
+  current.current = value;
+
   const press = (k: string) => {
     if (disabled) return;
+    const v = current.current;
+    let next = v;
+    if (k === 'ok') {
+      if (v !== '') onSubmit(v);
+      return;
+    }
     sound.tap();
-    if (k === 'del') onChange(value.slice(0, -1));
-    else if (k === 'ok') {
-      if (value !== '') onSubmit();
-    } else if (value.length < maxLength) onChange(value === '0' ? k : value + k);
+    if (k === 'del') next = v.slice(0, -1);
+    else if (v.length < maxLength) next = v === '0' ? k : v + k;
+    current.current = next;
+    onChange(next);
   };
 
   useEffect(() => {

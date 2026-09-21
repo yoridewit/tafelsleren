@@ -8,11 +8,11 @@ export function HintCard({ a, b }: { a: number; b: number }) {
     <div className="hint">
       <div className="hint-title">💡 {h.title}</div>
       <div className="hint-tip">{h.tip}</div>
-      <ol className="hint-steps">
+      <ul className="hint-steps">
         {h.steps.map((s) => (
           <li key={s}>{s}</li>
         ))}
-      </ol>
+      </ul>
       <Groups a={a} b={b} small />
     </div>
   );

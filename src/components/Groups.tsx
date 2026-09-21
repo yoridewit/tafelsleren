@@ -5,7 +5,7 @@ export function Groups({ a, b, small = false }: { a: number; b: number; small?: 
   return (
     <div className={`groups ${small ? 'groups-small' : ''}`} aria-label={`${a} groepjes van ${b}`}>
       {Array.from({ length: a }, (_, g) => (
-        <div className="group" key={g} style={{ borderColor: COLORS[g % COLORS.length] }}>
+        <div className="group" key={g} style={{ borderColor: COLORS[g % COLORS.length], gridTemplateColumns: `repeat(${Math.min(b, 5)}, var(--dot))` }}>
           {Array.from({ length: b }, (_, i) => (
             <span className="dot" key={i} style={{ background: COLORS[g % COLORS.length] }} />
           ))}

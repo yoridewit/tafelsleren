@@ -10,6 +10,10 @@ const RANK: Record<number, number> = { 1: 0, 10: 1, 2: 2, 5: 3, 9: 4, 4: 5, 6: 6
 
 /** Hint voor a × b (a = hoeveel keer, b = de tafel). */
 export function hintFor(a: number, b: number): Hint {
+  // Keer 1 en keer 10 zijn zo direct dat omdraaien alleen verwart.
+  if (b === 1) return { title: 'Keer 1', tip: `${a} keer 1 is gewoon ${a}.`, steps: [`${a} × 1 = ${a}`], flipped: false };
+  if (b === 10)
+    return { title: 'Keer 10', tip: `Zet een 0 achter ${a}.`, steps: [`${a} × 10 = ${a * 10}`], flipped: false };
   const flipped = RANK[b] < RANK[a];
   const m = flipped ? b : a;
   const n = flipped ? a : b;

@@ -26,6 +26,20 @@ describe('leitner', () => {
     expect(s.box).toBe(5);
     expect(s.due).toBe('2026-09-28');
   });
+  it('goes up at most one box per day', () => {
+    let s = applyAnswer(newFactState(), true, 1000, T);
+    s = applyAnswer(s, true, 1000, T);
+    expect(s.box).toBe(2);
+    s = applyAnswer(s, true, 1000, '2026-09-22');
+    expect(s.box).toBe(3);
+  });
+  it('after a mistake it can climb again the same day, but only once', () => {
+    let s = applyAnswer({ ...newFactState(), box: 3 }, false, 1000, T);
+    s = applyAnswer(s, true, 1000, T);
+    expect(s.box).toBe(2);
+    s = applyAnswer(s, true, 1000, T);
+    expect(s.box).toBe(2);
+  });
   it('fast days are distinct', () => {
     let s = applyAnswer(newFactState(), true, 1000, T);
     s = applyAnswer(s, true, 1000, T);

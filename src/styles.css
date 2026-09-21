@@ -363,10 +363,7 @@ h2 {
   gap: 18px 12px;
   padding: 20px;
   border-radius: 40px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.6) 0 60px, transparent 61px),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.5) 0 80px, transparent 81px),
-    linear-gradient(160deg, #bbf7d0, #a5f3fc);
+  background: linear-gradient(160deg, #bbf7d0, #a5f3fc);
   box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.6);
 }
 .island {
@@ -566,15 +563,16 @@ h2 {
 
 /* ---------- groepjes ---------- */
 .groups {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, auto);
   gap: 10px;
   justify-content: center;
-  max-width: 900px;
+  justify-items: center;
+  align-items: center;
 }
 .group {
+  --dot: 16px;
   display: grid;
-  grid-template-columns: repeat(5, 16px);
   gap: 4px;
   padding: 8px;
   border: 4px solid;
@@ -583,23 +581,19 @@ h2 {
   animation: pop 0.3s ease-out;
 }
 .dot {
-  width: 16px;
-  height: 16px;
+  width: var(--dot);
+  height: var(--dot);
   border-radius: 50%;
 }
 .groups-small {
   gap: 6px;
 }
 .groups-small .group {
-  grid-template-columns: repeat(5, 9px);
+  --dot: 9px;
   gap: 2px;
   padding: 4px;
   border-width: 3px;
   border-radius: 10px;
-}
-.groups-small .dot {
-  width: 9px;
-  height: 9px;
 }
 @keyframes pop {
   from {
@@ -727,7 +721,8 @@ h2 {
 }
 .hint-steps {
   margin: 0;
-  padding-left: 1.4em;
+  padding: 0;
+  list-style: none;
   font-size: 1.6rem;
   font-weight: 700;
   text-align: left;
@@ -1181,6 +1176,16 @@ h2 {
   .home-elf .bubble {
     grid-column: 2;
     grid-row: 1;
+  }
+  .home-elf .bubble::after,
+  .island-left .bubble::after {
+    left: 0;
+    bottom: auto;
+    top: 50%;
+    border: 14px solid transparent;
+    border-right-color: white;
+    border-left: 0;
+    transform: translate(-100%, -50%);
   }
   .home-elf .elf {
     grid-column: 1;

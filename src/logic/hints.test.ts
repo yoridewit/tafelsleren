@@ -22,6 +22,10 @@ describe('hints', () => {
     expect(h.steps).toContain('4 × 7 = 28');
     expect(h.steps).toContain('28 + 28 = 56');
   });
+  it('times 1 and times 10 stay as they are', () => {
+    expect(hintFor(5, 1)).toMatchObject({ flipped: false, steps: ['5 × 1 = 5'] });
+    expect(hintFor(7, 10)).toMatchObject({ flipped: false, tip: 'Zet een 0 achter 7.' });
+  });
   it('7 x 7 via 5 and 2', () => {
     expect(hintFor(7, 7).steps).toContain('35 + 14 = 49');
   });

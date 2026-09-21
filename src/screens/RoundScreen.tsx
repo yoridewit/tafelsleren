@@ -30,6 +30,7 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
   const requeued = useRef(new Set<string>());
   const wasIntro = useRef(false);
   const started = useRef(0);
+  const answered = useRef(-1); // voorkomt dubbel antwoorden bij snel twee keer tikken
 
   const q = queue[idx];
   const answer = q.a * q.b;
@@ -64,8 +65,8 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     go({ name: 'result', island, correct, total: queue.length, stars: roundReward(correct, firstToday) });
   };
 
-  const submit = () => {
-    const given = Number(input);
+  const submit = (value: string) => {
+    const given = Number(value);
     if (phase === 'wrong') {
       // natypen van het goede antwoord
       if (given === answer) {
@@ -79,6 +80,8 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
       }
       return;
     }
+    if (answered.current === idx) return;
+    answered.current = idx;
     const ms = wasIntro.current ? FAST_MS + 1 : performance.now() - started.current;
     const ok = given === answer;
     dispatch({ type: 'answer', key: q.key, correct: ok, ms, today });
@@ -157,7 +160,9 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
                   Bijna! {q.a} × {q.b} = <b>{answer}</b>. Kijk maar:
                 </p>
                 <HintCard a={q.a} b={q.b} />
-                <p>Typ nu zelf {answer}. Deze som komt straks nog een keer terug!</p>
+                <p className="big">
+                  Typ nu zelf <b>{answer}</b>. Deze som komt straks nog een keer terug!
+                </p>
               </div>
             )}
             {phase === 'ask' && <Elf wearing={save.wearing} mood="denken" size={130} className="round-elf" />}
