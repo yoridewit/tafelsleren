@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { islandProgress, computeUnlocks, knownCount } from './progress';
+import { islandProgress, computeUnlocks, knownCount, sharedWithEarlier, strongFacts } from './progress';
 import { factsForIsland } from './facts';
 import { newFactState, type FactState } from './leitner';
 import { currentStreak } from './streak';
@@ -23,6 +23,17 @@ describe('progress', () => {
     expect(computeUnlocks(facts, [0])).toEqual([0, 1]);
     expect(computeUnlocks({}, [0, 1, 4])).toEqual([0, 1, 4]);
     expect(knownCount(facts)).toBe(19);
+  });
+});
+
+describe('shared facts', () => {
+  it('only 9 x 9 is really new in the table of 9', () => {
+    expect(sharedWithEarlier(0)).toEqual([]);
+    expect(sharedWithEarlier(8).length).toBe(9);
+    expect(sharedWithEarlier(1)).toEqual(['1-2', '2-10']);
+  });
+  it('strong facts', () => {
+    expect(strongFacts({ '2-3': almost, '2-4': known, '2-5': { ...almost, box: 1 } })).toEqual(['2-3', '2-4']);
   });
 });
 

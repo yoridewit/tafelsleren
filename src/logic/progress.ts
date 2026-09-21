@@ -33,6 +33,17 @@ export function computeUnlocks(facts: Record<FactKey, FactState>, unlocked: numb
   return [...out].sort((a, b) => a - b);
 }
 
+/** Sommen van dit eiland die je (door omdraaien) al bij eerdere eilanden tegenkomt. */
+export function sharedWithEarlier(island: number): FactKey[] {
+  const earlier = new Set(ISLANDS.slice(0, island).flatMap((_, i) => factsForIsland(i)));
+  return factsForIsland(island).filter((k) => earlier.has(k));
+}
+
+/** Sommen die bijna of helemaal gekend zijn (voor het snelspel). */
+export function strongFacts(facts: Record<FactKey, FactState>): FactKey[] {
+  return ALL_FACTS.filter((k) => ['bijna', 'gekend'].includes(factStatus(facts[k])));
+}
+
 export function knownCount(facts: Record<FactKey, FactState>): number {
   return ALL_FACTS.filter((k) => isKnown(facts[k])).length;
 }
