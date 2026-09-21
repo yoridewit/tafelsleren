@@ -41,7 +41,10 @@ const takes = Number(arg('takes') ?? 0);
  * Met de hand gekozen opnames (uit --takes, soms met een ander model of andere tekst).
  * Die slaat het script over, ook bij --force, tenzij je ze expliciet met --only noemt.
  */
-const HANDPICKED = new Set(['eiland-oefen']); // v3, "[excited] … zit het ZÓ in je hoofd, echt waar!", stability 0.5
+const HANDPICKED = new Set([
+  'eiland-oefen', // v3, stability 0.5: "[excited] Elke dag een beetje oefenen, en dan zit het ZÓ in je hoofd, echt waar!"
+  'home-2', // v3, stability 0.5: "[excited] Super! Genoeg geoefend vandaag… Morgen weer?"
+]);
 
 interface VoiceSettings {
   stability: number;
