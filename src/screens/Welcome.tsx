@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Elf } from '../components/Elf';
 import { useStore } from '../state/store';
-import { sound } from '../audio';
+import { say, setChildName, sound } from '../audio';
+import { phraseText } from '../data/phrases';
 
 const ELF_NAMES = ['Pip', 'Fleur', 'Lila', 'Sprankel', 'Juul', 'Tinka'];
 
@@ -10,6 +11,15 @@ export function Welcome() {
   const [step, setStep] = useState(0);
   const [child, setChild] = useState('');
   const [elf, setElf] = useState('');
+
+  useEffect(() => {
+    if (step === 0) say('welkom-1');
+    else {
+      setChildName(child.trim());
+      say('welkom-2');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   return (
     <div className="screen welcome">
@@ -32,8 +42,7 @@ export function Welcome() {
         </div>
       ) : (
         <div className="card welcome-card">
-          <h1>Leuk je te ontmoeten, {child.trim()}!</h1>
-          <p className="big">Ik heb nog geen naam. Wil jij er een voor mij kiezen?</p>
+          <p className="big">{phraseText('welkom-2', child.trim())}</p>
           <div className="chips">
             {ELF_NAMES.map((n) => (
               <button key={n} className={`chip ${elf === n ? 'chip-on' : ''}`} onClick={() => setElf(n)}>

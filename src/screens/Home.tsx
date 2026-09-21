@@ -3,23 +3,27 @@ import { ISLANDS } from '../logic/facts';
 import { islandProgress, strongFacts } from '../logic/progress';
 import { currentStreak } from '../logic/streak';
 import { useSave } from '../state/store';
-import { sound } from '../audio';
+import { useEffect } from 'react';
+import { say, sayOnce, sound } from '../audio';
+import { phraseText } from '../data/phrases';
 import type { Go } from '../nav';
 
-
 export function Home({ go }: { go: Go }) {
-  const { save, today } = useSave();
+  const { save, today, dispatch } = useSave();
   const rounds = save.roundsByDay[today] ?? 0;
   const streak = currentStreak(save.practiceDays, today);
   const speedReady = strongFacts(save.facts).length >= 10;
   const current = Math.max(...save.unlocked);
 
-  const message =
-    rounds === 0
-      ? `Hoi ${save.childName}! Zullen we samen oefenen? ✨`
-      : rounds === 1
-        ? `Goed bezig, ${save.childName}! Nog één rondje?`
-        : `Super! Genoeg geoefend vandaag. Morgen weer? 🌙`;
+  const messageId = `home-${Math.min(rounds, 2)}`;
+  const message = phraseText(messageId, save.childName);
+
+  // Allereerste keer: eerst "Joepie! Laten we beginnen!", dan de begroeting.
+  const firstVisit = save.roundsDone === 0 && save.discovered.length === 0;
+  useEffect(
+    () => sayOnce(`${messageId}-${today}`, firstVisit ? ['welkom-3', messageId] : messageId),
+    [messageId, today, firstVisit],
+  );
 
   return (
     <div className="screen home">
@@ -28,6 +32,13 @@ export function Home({ go }: { go: Go }) {
         <h1 className="topbar-title">Het Toverbos</h1>
         <div className="topbar-right">
           <span className="pill pill-stars">⭐ {save.stars}</span>
+          <button
+            className="btn btn-round btn-white btn-small"
+            onClick={() => dispatch({ type: 'settings', patch: { music: !save.settings.music } })}
+            aria-label={save.settings.music ? 'muziek uit' : 'muziek aan'}
+          >
+            {save.settings.music ? '🎵' : '🔇'}
+          </button>
           <button className="btn btn-round btn-white btn-small" onClick={() => go({ name: 'gate' })} aria-label="ouders">
             🔒
           </button>
@@ -36,7 +47,9 @@ export function Home({ go }: { go: Go }) {
 
       <div className="home-body">
         <aside className="home-elf">
-          <div className="bubble">{message}</div>
+          <button className="bubble bubble-btn" onClick={() => say(messageId)}>
+            {message}
+          </button>
           <Elf wearing={save.wearing} size="100%" className="float" />
           <div className="elf-name">{save.elfName}</div>
           <div className="home-actions">

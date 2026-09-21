@@ -7,7 +7,8 @@ import { FAST_MS } from '../logic/leitner';
 import { buildRound, type Question } from '../logic/round';
 import { roundReward } from '../state/reducer';
 import { useSave } from '../state/store';
-import { say, sayFact, sayPraise, sayQuestion, sound } from '../audio';
+import { say, sayHint, sayPraise, sayQuestion, sound } from '../audio';
+import { factId } from '../data/phrases';
 import { PRAISE } from '../data/phrases';
 import type { Go } from '../nav';
 
@@ -41,7 +42,7 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     if (q.isNew && !introduced.current.has(q.key)) {
       setPhase('intro');
       wasIntro.current = true;
-      sayFact(q.a, q.b);
+      say(['nieuw', factId(q.a, q.b)]);
     } else {
       setPhase('ask');
       wasIntro.current = false;
@@ -96,7 +97,7 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
       setTimeout(advance, 1000);
     } else {
       sound.oops();
-      setTimeout(() => say('bijna'), 300);
+      setTimeout(() => sayHint(q.a, q.b), 300);
       setPhase('wrong');
       setInput('');
       if (!requeued.current.has(q.key)) {
@@ -112,7 +113,10 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
   return (
     <div className="screen round" style={{ ['--c' as string]: ISLANDS[island].color }}>
       <header className="topbar">
-        <button className="btn btn-round btn-white" onClick={() => setQuit(true)} aria-label="stoppen">
+        <button className="btn btn-round btn-white" onClick={() => {
+            setQuit(true);
+            say('stoppen');
+          }} aria-label="stoppen">
           ✕
         </button>
         <div className="dots">

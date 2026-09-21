@@ -3,6 +3,13 @@ import { STICKERS } from '../data/stickers';
 import { ISLANDS } from '../logic/facts';
 import { useStore } from '../state/store';
 import { sound } from '../audio';
+import { islandOpenId, stickerId } from '../data/phrases';
+import type { AppState } from '../state/reducer';
+
+/** Wat het elfje zegt bij nieuwe eilanden en stickers (max. 3 zinnen, anders wordt het te lang). */
+export function celebrationPhrases(state: AppState): string[] {
+  return [...state.newUnlocks.map(islandOpenId), ...state.newStickers.map(stickerId)].slice(0, 3);
+}
 
 const CONFETTI = ['#f472b6', '#facc15', '#4ade80', '#38bdf8', '#c084fc', '#fb923c'];
 

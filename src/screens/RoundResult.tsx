@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { Elf } from '../components/Elf';
 import { Celebration } from '../components/Celebration';
 import { useSave } from '../state/store';
-import { sound } from '../audio';
+import { say, sound } from '../audio';
+import { phraseText } from '../data/phrases';
+import { celebrationPhrases } from '../components/Celebration';
 import type { Go } from '../nav';
 
 interface Props {
@@ -14,34 +16,35 @@ interface Props {
 }
 
 export function RoundResult({ island, correct, total, stars, go }: Props) {
-  const { save, today } = useSave();
+  const { save, today, state } = useSave();
   const roundsToday = save.roundsByDay[today] ?? 0;
   const ratio = correct / total;
 
+  const titleId = ratio >= 0.9 ? 'res-top' : ratio >= 0.6 ? 'res-goed' : 'res-knap';
+  const extraId = roundsToday >= 3 ? 'res-genoeg' : ratio < 0.6 ? 'res-moeilijk' : null;
+
   useEffect(() => {
     sound.coin();
+    say([titleId, ...celebrationPhrases(state), ...(extraId ? [extraId] : [])]);
+    // alleen bij binnenkomst
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const title = ratio >= 0.9 ? 'Fantastisch' : ratio >= 0.6 ? 'Goed gedaan' : 'Knap geoefend';
 
   return (
     <div className="screen result">
       <div className="result-card card">
         <Elf wearing={save.wearing} mood="juichen" size={180} className="bounce" />
         <h1>
-          {title}, {save.childName}!
+          {phraseText(titleId, save.childName)}
         </h1>
         <p className="big">
           {correct} van de {total} sommen in één keer goed
         </p>
         <div className="stars-earned">+{stars} ⭐</div>
         {roundsToday >= 3 ? (
-          <p className="big">
-            Je hebt vandaag al {roundsToday} rondes gedaan. Wat knap! Je hersenen onthouden het beste als je morgen weer
-            even oefent. 🌙
-          </p>
+          <p className="big">{phraseText('res-genoeg')} 🌙</p>
         ) : ratio < 0.6 ? (
-          <p className="big">Moeilijke sommen komen vaker terug. Zo leer je ze vanzelf!</p>
+          <p className="big">{phraseText('res-moeilijk')}</p>
         ) : null}
         <div className="row">
           <button className="btn btn-white btn-big" onClick={() => go({ name: 'home' })}>

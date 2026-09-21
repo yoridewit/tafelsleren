@@ -7,7 +7,8 @@ import { orientFact, type FactKey } from '../logic/facts';
 import { strongFacts } from '../logic/progress';
 import { speedReward } from '../state/reducer';
 import { useSave } from '../state/store';
-import { sound } from '../audio';
+import { say, sound } from '../audio';
+import { celebrationPhrases } from '../components/Celebration';
 import type { Go } from '../nav';
 
 const DURATION = 60;
@@ -20,7 +21,7 @@ function pick(pool: FactKey[], last: FactKey | null) {
 
 /** Snelspel: 60 seconden, alleen sommen die ze al (bijna) kent. Geen invloed op het leerschema. */
 export function SpeedGame({ go }: { go: Go }) {
-  const { save, dispatch, today } = useSave();
+  const { save, dispatch, today, state } = useSave();
   const pool = useRef(strongFacts(save.facts)).current;
   const [phase, setPhase] = useState<'start' | 'play' | 'end'>('start');
   const [left, setLeft] = useState(DURATION);
@@ -30,6 +31,17 @@ export function SpeedGame({ go }: { go: Go }) {
   const [flash, setFlash] = useState<'' | 'right' | 'wrong'>('');
   const [oldRecord, setOldRecord] = useState(save.speedRecord);
   const scoreRef = useRef(0);
+
+  useEffect(() => {
+    if (phase === 'start') say('snel-start');
+    if (phase === 'play') say('snel-go');
+  }, [phase]);
+
+  // Einde: tijd op of nieuw record, plus eventuele stickers.
+  useEffect(() => {
+    if (phase === 'end') say([scoreRef.current > oldRecord ? 'record' : 'snel-klaar', ...celebrationPhrases(state)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   useEffect(() => {
     if (phase !== 'play') return;

@@ -24,7 +24,22 @@ export default defineConfig({
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,mp3}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,mp3}'],
+        // Muziek is groot (±4 MB per nummer): niet vooraf downloaden, wel bewaren zodra een nummer gespeeld is.
+        globIgnores: ['**/menu_music*.mp3'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/audio\/menu_music.*\.mp3$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'menu-music',
+              rangeRequests: true,
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
+      },
     }),
   ],
   test: { environment: 'node' },

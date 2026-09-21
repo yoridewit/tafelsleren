@@ -32,12 +32,18 @@ De app leest sommen, uitleg en complimentjes voor met ingesproken mp3's uit `pub
    ELEVENLABS_API_KEY=sk_...
    # optioneel een andere stem, zie: npm run audio -- --voices
    # ELEVENLABS_VOICE_ID=...
+   # optioneel: zinnen ook met de naam van je kind ("Hoi Floor!")
+   # CHILD_NAME=Floor
    ```
 3. Probeer eerst een paar zinnen: `npm run audio -- --only=test,q-7-6,d-6-7`, en luister naar `public/audio/`.
-4. Tevreden? Maak de rest: `npm run audio` (ongeveer 210 zinnen, samen minder dan 5.000 tekens: past in het gratis plan).
+4. Tevreden? Maak de rest: `npm run audio` (ongeveer 390 zinnen, ruim 15.000 tekens). Let op: stemmen uit de Voice Library werken via de API alleen met een betaald plan.
 5. Commit en push `public/audio/` en `src/data/audio-manifest.json`.
 
 Andere stem gekozen? Draai `npm run audio -- --force` om alles opnieuw in te spreken.
+
+## Menumuziek
+
+`public/audio/menu_music*.mp3` speelt zacht in de menu's (kaart, eiland, winkel, stickers, resultaat), nooit tijdens ontdekken, oefenen of het snelspel. De muziek gaat zachter als het elfje praat. Uitzetten kan met 🎵 op de kaart of in het ouderdeel.
 
 ## Deploy
 

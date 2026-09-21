@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from './state/store';
 import type { Screen } from './nav';
+import { setMusicWanted } from './music';
 import { Welcome } from './screens/Welcome';
 import { Home } from './screens/Home';
 import { IslandScreen } from './screens/IslandScreen';
@@ -12,6 +13,9 @@ import { Album } from './screens/Album';
 import { SpeedGame } from './screens/SpeedGame';
 import { ParentGate } from './screens/ParentGate';
 import { Parent } from './screens/Parent';
+
+/** Schermen met achtergrondmuziek. Niet tijdens ontdekken, oefenen, snelspel en ouderdeel: daar is rust nodig. */
+const MUSIC_SCREENS = new Set<Screen['name']>(['home', 'island', 'result', 'shop', 'album']);
 
 export function App() {
   const { state } = useStore();
@@ -27,6 +31,8 @@ export function App() {
   useEffect(() => {
     if (!state.save) setScreen({ name: 'home' });
   }, [state.save]);
+
+  useEffect(() => setMusicWanted(!state.save || MUSIC_SCREENS.has(screen.name)), [screen.name, state.save]);
 
   if (!state.save) return <Welcome />;
 

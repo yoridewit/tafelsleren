@@ -4,6 +4,9 @@ import { ISLANDS, factKey } from '../logic/facts';
 import { factStatus } from '../logic/leitner';
 import { islandProgress, sharedWithEarlier } from '../logic/progress';
 import { useSave } from '../state/store';
+import { useEffect } from 'react';
+import { say, sayOnce } from '../audio';
+import { phraseText, sharedId } from '../data/phrases';
 import type { Go } from '../nav';
 
 const STATUS_LABEL = { nieuw: 'nieuw', oefenen: 'oefenen', bijna: 'bijna!', gekend: 'kan ik!' };
@@ -15,20 +18,25 @@ export function IslandScreen({ island, go }: { island: number; go: Go }) {
   const shared = sharedWithEarlier(island).length;
   const discovered = save.discovered.includes(island);
 
-  const message = p.mastered
-    ? `Deze tafel ken je! Blijf af en toe oefenen, dan vergeet je hem niet. 🌟`
+  const messageId = p.mastered
+    ? 'eiland-klaar'
     : shared > 0 && p.fresh + p.practicing > 0
-      ? `Weet je wat? ${shared} van deze sommen ken je al van andere tafels. Je draait ze gewoon om! Er zijn maar ${p.total - shared} echt nieuw.`
+      ? sharedId(shared)
       : discovered
-        ? `Elke dag een beetje oefenen, dan zit het zo in je hoofd!`
-        : `Laten we eerst samen ontdekken hoe deze tafel werkt!`;
+        ? 'eiland-oefen'
+        : 'eiland-ontdek';
+  const message = phraseText(messageId, save.childName);
+
+  useEffect(() => sayOnce(`${messageId}-${island}`, messageId), [messageId, island]);
 
   return (
     <div className="screen island-screen" style={{ ['--c' as string]: isl.color }}>
       <TopBar onBack={() => go({ name: 'home' })} title={`${isl.emoji} ${isl.name}`} stars={save.stars} />
       <div className="island-body">
         <div className="island-left">
-          <div className="bubble">{message}</div>
+          <button className="bubble bubble-btn" onClick={() => say(messageId)}>
+            {message}
+          </button>
           <Elf wearing={save.wearing} size="100%" mood={p.mastered ? 'juichen' : 'blij'} />
         </div>
         <div className="island-right">

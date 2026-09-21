@@ -1,11 +1,14 @@
 import { TopBar } from '../components/TopBar';
 import { STICKERS } from '../data/stickers';
 import { useSave } from '../state/store';
+import { useEffect } from 'react';
+import { say } from '../audio';
 import type { Go } from '../nav';
 
 export function Album({ go }: { go: Go }) {
   const { save } = useSave();
   const count = STICKERS.filter((s) => save.stickers.includes(s.id)).length;
+  useEffect(() => say('album'), []);
   return (
     <div className="screen album">
       <TopBar onBack={() => go({ name: 'home' })} title={`📖 Stickers (${count}/${STICKERS.length})`} stars={save.stars} />

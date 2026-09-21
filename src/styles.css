@@ -261,6 +261,14 @@ h2 {
   line-height: 1.3;
   box-shadow: 0 6px 16px rgba(109, 40, 217, 0.12);
 }
+.bubble-btn {
+  font: inherit;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  color: inherit;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
 .bubble::after {
   content: '';
   position: absolute;
@@ -1195,7 +1203,15 @@ h2 {
     grid-row: 1;
   }
   .home-elf .bubble::after,
-  .island-left .bubble::after {
+  .island-left .bubble-btn {
+  font: inherit;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  color: inherit;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.bubble::after {
     left: 0;
     bottom: auto;
     top: 50%;

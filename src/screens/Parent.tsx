@@ -190,6 +190,14 @@ export function Parent({ go }: { go: Go }) {
             />
             Sommen voorlezen
           </label>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={save.settings.music}
+              onChange={(e) => dispatch({ type: 'settings', patch: { music: e.target.checked } })}
+            />
+            Muziek in de menu's (nooit tijdens het oefenen)
+          </label>
           {hasRecordedVoice() ? (
             <p className="muted">
               De app gebruikt ingesproken zinnen (natuurlijke AI-stem). De stem hieronder is alleen een reserve voor zinnen

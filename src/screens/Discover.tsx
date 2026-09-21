@@ -5,7 +5,8 @@ import { NumberLine } from '../components/NumberLine';
 import { Elf } from '../components/Elf';
 import { ISLANDS } from '../logic/facts';
 import { useSave } from '../state/store';
-import { sayFact, sound } from '../audio';
+import { say, sayFact, sound } from '../audio';
+import { discoverDoneId, discoverTip } from '../data/phrases';
 import type { Go } from '../nav';
 
 const ANCHORS = [1, 2, 5, 10];
@@ -20,7 +21,8 @@ export function Discover({ island, go }: { island: number; go: Go }) {
   const n = tables[ti];
 
   useEffect(() => {
-    if (!summary) sayFact(k, n);
+    if (summary) say(discoverDoneId(n));
+    else sayFact(k, n);
   }, [k, n, summary]);
 
   const next = () => {
@@ -71,11 +73,7 @@ export function Discover({ island, go }: { island: number; go: Go }) {
                   </div>
                 ))}
               </div>
-              <p className="big">
-                {n === 1 && 'Keer 1 is makkelijk: het getal blijft hetzelfde!'}
-                {n === 10 && 'Keer 10: zet er een 0 achter!'}
-                {n !== 1 && n !== 10 && `Bijvoorbeeld 6 × ${n}: dat is 5 × ${n} en dan nog één ${n} erbij. En 9 × ${n} is 10 × ${n} min één ${n}.`}
-              </p>
+              <p className="big">{discoverTip(n)}</p>
             </div>
           </div>
           <button className="btn btn-primary btn-big" onClick={finish}>

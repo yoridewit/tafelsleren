@@ -1,17 +1,18 @@
-import manifest from './data/audio-manifest.json';
-import { PHRASES, factId, praiseId, questionId } from './data/phrases';
+import manifestJson from './data/audio-manifest.json';
+import { factId, hintId, phraseText, praiseId, questionId } from './data/phrases';
 
 let ctx: AudioContext | null = null;
 let soundOn = true;
 let speechOn = true;
 
 export function setAudioPrefs(sound: boolean, speech: boolean) {
+  if (soundOn === sound && speechOn === speech) return;
   soundOn = sound;
   speechOn = speech;
   if (!speech && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
-function getCtx(): AudioContext {
+export function getCtx(): AudioContext {
   ctx ??= new AudioContext();
   if (ctx.state === 'suspended') void ctx.resume();
   return ctx;
@@ -136,26 +137,39 @@ export function speak(text: string, force = false) {
 
 /* ---------- ingesproken zinnen (ElevenLabs, zie scripts/generate-audio.ts) ---------- */
 
+const manifest = manifestJson as { voice: string | null; childName: string | null; ids: string[] };
 const recorded = new Set<string>(manifest.ids);
+const recordedName = manifest.childName?.toLowerCase() ?? null;
 const buffers = new Map<string, Promise<AudioBuffer>>();
 let current: AudioBufferSourceNode | null = null;
 let playToken = 0;
+let childName: string | null = null;
+let talkListener: (talking: boolean) => void = () => {};
 
 export function hasRecordedVoice(): boolean {
   return recorded.size > 0;
 }
 
-function loadBuffer(id: string): Promise<AudioBuffer> {
-  let p = buffers.get(id);
+export function setChildName(name: string | null) {
+  childName = name;
+}
+
+/** Laat bijv. de muziek weten wanneer het elfje praat (om zachter te gaan). */
+export function onTalking(cb: (talking: boolean) => void) {
+  talkListener = cb;
+}
+
+function loadBuffer(file: string): Promise<AudioBuffer> {
+  let p = buffers.get(file);
   if (!p) {
-    p = fetch(`/audio/${id}.mp3`)
+    p = fetch(`/audio/${file}.mp3`)
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status}`);
         return r.arrayBuffer();
       })
       .then((data) => getCtx().decodeAudioData(data));
-    p.catch(() => buffers.delete(id));
-    buffers.set(id, p);
+    p.catch(() => buffers.delete(file));
+    buffers.set(file, p);
   }
   return p;
 }
@@ -169,31 +183,83 @@ function stopTalking() {
   }
   current = null;
   synth()?.cancel();
+  talkListener(false);
 }
 
-/** Zegt een zin: de ingesproken opname als die er is, anders de stem van het apparaat. */
-export function say(id: string, force = false) {
-  if (!speechOn && !force) return;
-  const text = PHRASES[id];
-  stopTalking();
-  if (!recorded.has(id)) {
-    if (text) speak(text, force);
-    return;
+/** Welk bestand hoort bij deze zin: de versie met naam als die voor dit kind is ingesproken. */
+function recordingFor(id: string): string | null {
+  if (childName && recordedName === childName.toLowerCase() && recorded.has(`${id}.n`)) return `${id}.n`;
+  return recorded.has(id) ? id : null;
+}
+
+function speakAndWait(text: string): Promise<void> {
+  const s = synth();
+  const voice = pickVoice();
+  if (!s || !voice || !text) return Promise.resolve();
+  return new Promise((resolve) => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = voice;
+    u.lang = voice.lang;
+    u.rate = 0.95;
+    u.onend = u.onerror = () => resolve();
+    s.speak(u);
+  });
+}
+
+async function playOne(id: string, token: number) {
+  const file = recordingFor(id);
+  if (file) {
+    try {
+      const buffer = await loadBuffer(file);
+      if (token !== playToken) return;
+      await new Promise<void>((resolve) => {
+        const c = getCtx();
+        const src = c.createBufferSource();
+        src.buffer = buffer;
+        src.connect(c.destination);
+        src.onended = () => resolve();
+        current = src;
+        src.start();
+      });
+      return;
+    } catch {
+      // geen opname beschikbaar: dan de stem van het apparaat
+    }
   }
+  if (token === playToken) await speakAndWait(phraseText(id, childName));
+}
+
+/**
+ * Zegt één of meer zinnen na elkaar: de ingesproken opname als die er is, anders de stem van het apparaat.
+ * Een nieuwe `say` onderbreekt wat er nog gezegd werd.
+ */
+export function say(ids: string | string[], force = false) {
+  if (!speechOn && !force) return;
+  stopTalking();
   const token = playToken;
-  loadBuffer(id)
-    .then((buffer) => {
-      if (token !== playToken) return; // intussen is er iets anders gezegd
-      const c = getCtx();
-      const src = c.createBufferSource();
-      src.buffer = buffer;
-      src.connect(c.destination);
-      src.start();
-      current = src;
-    })
-    .catch(() => {
-      if (token === playToken && text) speak(text, force);
-    });
+  const list = Array.isArray(ids) ? ids : [ids];
+  // Alles alvast laden, zodat er geen stilte valt tussen de zinnen.
+  for (const id of list) {
+    const file = recordingFor(id);
+    if (file) loadBuffer(file).catch(() => {});
+  }
+  talkListener(true);
+  void (async () => {
+    for (const id of list) {
+      if (token !== playToken) return;
+      await playOne(id, token);
+    }
+    if (token === playToken) talkListener(false);
+  })();
+}
+
+const saidThisSession = new Set<string>();
+
+/** Zegt iets maar één keer per keer dat de app open is (bijv. het welkomstpraatje op de kaart). */
+export function sayOnce(key: string, ids: string | string[]) {
+  if (saidThisSession.has(key)) return;
+  saidThisSession.add(key);
+  say(ids);
 }
 
 /** "7 × 6" hardop: "7 keer 6". */
@@ -208,4 +274,9 @@ export function sayFact(a: number, b: number) {
 
 export function sayPraise(index: number) {
   say(praiseId(index));
+}
+
+/** Na een fout: "Bijna! Kijk maar." en dan de uitleg van de strategie. */
+export function sayHint(a: number, b: number) {
+  say(['bijna', hintId(a, b)]);
 }

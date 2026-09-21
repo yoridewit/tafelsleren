@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Elf } from '../components/Elf';
 import { TopBar } from '../components/TopBar';
 import { SHOP, SLOTS, itemById, type ItemSlot } from '../data/shop';
 import { ISLANDS } from '../logic/facts';
 import { useSave } from '../state/store';
-import { sound } from '../audio';
+import { say, sayOnce, sound } from '../audio';
 import type { Go } from '../nav';
 
 export function Shop({ go }: { go: Go }) {
@@ -17,6 +17,16 @@ export function Shop({ go }: { go: Go }) {
   const owned = item && save.owned.includes(item.id);
   const wearing = item && save.wearing[item.slot] === item.id;
   const open = item && save.unlocked.includes(item.island);
+
+  useEffect(() => sayOnce('winkel-welkom', 'winkel-welkom'), []);
+
+  const pick = (id: string) => {
+    setPicked(id);
+    const it = itemById(id)!;
+    if (save.owned.includes(id)) return;
+    if (!save.unlocked.includes(it.island)) say('winkel-later');
+    else if (save.stars < it.price) say('sparen');
+  };
 
   return (
     <div className="screen shop">
@@ -45,6 +55,7 @@ export function Shop({ go }: { go: Go }) {
                   onClick={() => {
                     sound.coin();
                     dispatch({ type: 'buy', id: item.id });
+                    say('gekocht');
                   }}
                 >
                   Kopen voor {item.price} ⭐
@@ -83,7 +94,7 @@ export function Shop({ go }: { go: Go }) {
                 <button
                   key={i.id}
                   className={`shop-item ${picked === i.id ? 'shop-item-on' : ''} ${isOpen ? '' : 'shop-item-locked'}`}
-                  onClick={() => setPicked(i.id)}
+                  onClick={() => pick(i.id)}
                 >
                   <Elf wearing={{ [i.slot]: i.id }} size="100%" />
                   <span className="shop-item-name">{i.name}</span>

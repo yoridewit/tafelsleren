@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { say } from '../audio';
 import { NumPad } from '../components/NumPad';
 import { TopBar } from '../components/TopBar';
 import type { Go } from '../nav';
@@ -10,6 +11,7 @@ export function ParentGate({ go }: { go: Go }) {
   const [q, setQ] = useState(() => ({ a: rnd(), b: rnd() }));
   const [input, setInput] = useState('');
   const [wrong, setWrong] = useState(false);
+  useEffect(() => say('ouders'), []);
 
   return (
     <div className="screen gate">

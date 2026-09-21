@@ -2,7 +2,10 @@ import { createContext, useContext, useEffect, useReducer, type Dispatch, type R
 import { reducer, initialState, type Action, type AppState } from './reducer';
 import { loadSave, writeSave } from '../logic/storage';
 import { dayKey } from '../logic/dates';
-import { setAudioPrefs, setPreferredVoice } from '../audio';
+import { onTalking, setAudioPrefs, setChildName, setPreferredVoice } from '../audio';
+import { duckMusic, setMusicEnabled } from '../music';
+
+onTalking(duckMusic);
 
 interface Store {
   state: AppState;
@@ -16,11 +19,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, null, () => initialState(loadSave()));
 
   useEffect(() => writeSave(state.save), [state.save]);
-  useEffect(() => {
-    if (!state.save) return;
-    setAudioPrefs(state.save.settings.sound, state.save.settings.speech);
-    setPreferredVoice(state.save.settings.voice);
-  }, [state.save?.settings]);
+
+  // Bewust tijdens het renderen (niet in een effect): de schermen eronder praten al in hun eigen effect,
+  // en die draaien vóór de effecten van deze provider. Alle setters zijn idempotent.
+  const settings = state.save?.settings;
+  setAudioPrefs(settings?.sound ?? true, settings?.speech ?? true);
+  setPreferredVoice(settings?.voice ?? null);
+  setMusicEnabled(settings?.music ?? true);
+  if (state.save) setChildName(state.save.childName);
 
   return <StoreContext.Provider value={{ state, dispatch, today: dayKey() }}>{children}</StoreContext.Provider>;
 }
