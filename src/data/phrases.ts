@@ -66,7 +66,7 @@ Object.assign(LINES, {
 
   // eiland
   'eiland-klaar': 'Deze tafel ken je! Blijf af en toe oefenen, dan vergeet je hem niet.',
-  'eiland-oefen': 'Elke dag een beetje oefenen, dan zit het zo in je hoofd!',
+  'eiland-oefen': 'Elke dag een beetje oefenen, en dan zit het zó in je hoofd, echt waar!',
   'eiland-ontdek': 'Laten we eerst samen ontdekken hoe deze tafel werkt!',
 
   // ronde
