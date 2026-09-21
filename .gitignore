@@ -3,3 +3,5 @@ dist
 dev-dist
 *.log
 .vercel
+.env.local
+.env

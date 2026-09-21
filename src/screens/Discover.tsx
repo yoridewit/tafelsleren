@@ -5,7 +5,7 @@ import { NumberLine } from '../components/NumberLine';
 import { Elf } from '../components/Elf';
 import { ISLANDS } from '../logic/facts';
 import { useSave } from '../state/store';
-import { sound, speak } from '../audio';
+import { sayFact, sound } from '../audio';
 import type { Go } from '../nav';
 
 const ANCHORS = [1, 2, 5, 10];
@@ -20,7 +20,7 @@ export function Discover({ island, go }: { island: number; go: Go }) {
   const n = tables[ti];
 
   useEffect(() => {
-    if (!summary) speak(`${k} keer ${n} is ${k * n}`);
+    if (!summary) sayFact(k, n);
   }, [k, n, summary]);
 
   const next = () => {

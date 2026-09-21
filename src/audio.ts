@@ -1,3 +1,6 @@
+import manifest from './data/audio-manifest.json';
+import { PHRASES, factId, praiseId, questionId } from './data/phrases';
+
 let ctx: AudioContext | null = null;
 let soundOn = true;
 let speechOn = true;
@@ -8,11 +11,30 @@ export function setAudioPrefs(sound: boolean, speech: boolean) {
   if (!speech && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
+function getCtx(): AudioContext {
+  ctx ??= new AudioContext();
+  if (ctx.state === 'suspended') void ctx.resume();
+  return ctx;
+}
+
+// iPad/Safari laat pas geluid toe na een aanraking: bij de eerste tik de audio "ontgrendelen".
+if (typeof window !== 'undefined')
+  window.addEventListener(
+    'pointerdown',
+    () => {
+      try {
+        getCtx();
+      } catch {
+        // geen Web Audio
+      }
+    },
+    { once: true },
+  );
+
 function tone(freq: number, start: number, dur: number, type: OscillatorType = 'sine', gain = 0.12) {
   if (!soundOn) return;
   try {
-    ctx ??= new AudioContext();
-    if (ctx.state === 'suspended') void ctx.resume();
+    const ctx = getCtx();
     const t = ctx.currentTime + start;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -112,7 +134,78 @@ export function speak(text: string, force = false) {
   s.speak(u);
 }
 
+/* ---------- ingesproken zinnen (ElevenLabs, zie scripts/generate-audio.ts) ---------- */
+
+const recorded = new Set<string>(manifest.ids);
+const buffers = new Map<string, Promise<AudioBuffer>>();
+let current: AudioBufferSourceNode | null = null;
+let playToken = 0;
+
+export function hasRecordedVoice(): boolean {
+  return recorded.size > 0;
+}
+
+function loadBuffer(id: string): Promise<AudioBuffer> {
+  let p = buffers.get(id);
+  if (!p) {
+    p = fetch(`/audio/${id}.mp3`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.arrayBuffer();
+      })
+      .then((data) => getCtx().decodeAudioData(data));
+    p.catch(() => buffers.delete(id));
+    buffers.set(id, p);
+  }
+  return p;
+}
+
+function stopTalking() {
+  playToken++;
+  try {
+    current?.stop();
+  } catch {
+    // al gestopt
+  }
+  current = null;
+  synth()?.cancel();
+}
+
+/** Zegt een zin: de ingesproken opname als die er is, anders de stem van het apparaat. */
+export function say(id: string, force = false) {
+  if (!speechOn && !force) return;
+  const text = PHRASES[id];
+  stopTalking();
+  if (!recorded.has(id)) {
+    if (text) speak(text, force);
+    return;
+  }
+  const token = playToken;
+  loadBuffer(id)
+    .then((buffer) => {
+      if (token !== playToken) return; // intussen is er iets anders gezegd
+      const c = getCtx();
+      const src = c.createBufferSource();
+      src.buffer = buffer;
+      src.connect(c.destination);
+      src.start();
+      current = src;
+    })
+    .catch(() => {
+      if (token === playToken && text) speak(text, force);
+    });
+}
+
 /** "7 × 6" hardop: "7 keer 6". */
 export function sayQuestion(a: number, b: number) {
-  speak(`${a} keer ${b}`);
+  say(questionId(a, b));
+}
+
+/** "3 keer 7 is 21." */
+export function sayFact(a: number, b: number) {
+  say(factId(a, b));
+}
+
+export function sayPraise(index: number) {
+  say(praiseId(index));
 }

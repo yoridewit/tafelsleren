@@ -7,7 +7,7 @@ import { currentStreak } from '../logic/streak';
 import { addDays } from '../logic/dates';
 import { parseSave } from '../logic/storage';
 import { useSave } from '../state/store';
-import { dutchVoices, onVoicesChanged, setPreferredVoice, speak } from '../audio';
+import { dutchVoices, hasRecordedVoice, onVoicesChanged, say, setPreferredVoice } from '../audio';
 import type { Go } from '../nav';
 
 const STATUS_TEXT = { nieuw: 'Nog niet geoefend', oefenen: 'Aan het oefenen', bijna: 'Bijna', gekend: 'Kent ze uit het hoofd' };
@@ -24,7 +24,7 @@ export function Parent({ go }: { go: Go }) {
 
   const testVoice = (uri: string | null) => {
     setPreferredVoice(uri);
-    speak('Hoi! Zeven keer zes is tweeënveertig. Goed zo!', true);
+    say('test', true);
   };
 
   // Kalender: 8 weken, beginnend op maandag.
@@ -190,6 +190,14 @@ export function Parent({ go }: { go: Go }) {
             />
             Sommen voorlezen
           </label>
+          {hasRecordedVoice() ? (
+            <p className="muted">
+              De app gebruikt ingesproken zinnen (natuurlijke AI-stem). De stem hieronder is alleen een reserve voor zinnen
+              zonder opname.
+            </p>
+          ) : (
+            <p className="muted">Voorleesstem van dit apparaat:</p>
+          )}
           <div className="voice-row">
             <select
               className="voice-select"

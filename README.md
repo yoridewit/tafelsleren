@@ -22,6 +22,23 @@ npm run build    # productie-build naar dist/
 
 De leerlogica staat in `src/logic/` (zonder UI, met tests), de state in `src/state/`, de schermen in `src/screens/`.
 
+## Natuurlijke stem (ElevenLabs)
+
+De app leest sommen, uitleg en complimentjes voor met ingesproken mp3's uit `public/audio/`. Zonder opname valt hij terug op de Nederlandse stem van het apparaat.
+
+1. Maak een API-sleutel op elevenlabs.io (Profile → API Keys).
+2. Zet hem in een bestand `.env.local` in de projectmap (dat bestand gaat niet naar GitHub):
+   ```
+   ELEVENLABS_API_KEY=sk_...
+   # optioneel een andere stem, zie: npm run audio -- --voices
+   # ELEVENLABS_VOICE_ID=...
+   ```
+3. Probeer eerst een paar zinnen: `npm run audio -- --only=test,q-7-6,d-6-7`, en luister naar `public/audio/`.
+4. Tevreden? Maak de rest: `npm run audio` (ongeveer 210 zinnen, samen minder dan 5.000 tekens: past in het gratis plan).
+5. Commit en push `public/audio/` en `src/data/audio-manifest.json`.
+
+Andere stem gekozen? Draai `npm run audio -- --force` om alles opnieuw in te spreken.
+
 ## Deploy
 
 Vercel herkent het project als Vite: build `npm run build`, output `dist`. Elke push naar `main` wordt automatisch gedeployed.

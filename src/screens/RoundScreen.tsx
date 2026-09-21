@@ -7,12 +7,12 @@ import { FAST_MS } from '../logic/leitner';
 import { buildRound, type Question } from '../logic/round';
 import { roundReward } from '../state/reducer';
 import { useSave } from '../state/store';
-import { sayQuestion, sound } from '../audio';
+import { say, sayFact, sayPraise, sayQuestion, sound } from '../audio';
+import { PRAISE } from '../data/phrases';
 import type { Go } from '../nav';
 
 type Phase = 'intro' | 'ask' | 'right' | 'wrong';
 
-const PRAISE = ['Goed zo!', 'Super!', 'Knap hoor!', 'Toppie!', 'Yes!', 'Wauw!', 'Heel goed!'];
 
 export function RoundScreen({ island, go }: { island: number; go: Go }) {
   const { save, dispatch, today } = useSave();
@@ -41,6 +41,7 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     if (q.isNew && !introduced.current.has(q.key)) {
       setPhase('intro');
       wasIntro.current = true;
+      sayFact(q.a, q.b);
     } else {
       setPhase('ask');
       wasIntro.current = false;
@@ -88,11 +89,14 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     if (ok) {
       sound.correct();
       correctRef.current += 1;
-      setPraise(PRAISE[Math.floor(Math.random() * PRAISE.length)]);
+      const p = Math.floor(Math.random() * PRAISE.length);
+      setPraise(PRAISE[p]);
+      setTimeout(() => sayPraise(p), 250);
       setPhase('right');
       setTimeout(advance, 1000);
     } else {
       sound.oops();
+      setTimeout(() => say('bijna'), 300);
       setPhase('wrong');
       setInput('');
       if (!requeued.current.has(q.key)) {
