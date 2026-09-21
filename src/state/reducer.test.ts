@@ -4,12 +4,12 @@ import { emptySave, parseSave } from '../logic/storage';
 import { factsForIsland } from '../logic/facts';
 
 const T = '2026-09-21';
-const started = (): AppState => reducer(initialState(null), { type: 'setup', childName: 'Floor', elfName: 'Pip' });
+const started = (): AppState => reducer(initialState(null), { type: 'setup', elfName: 'Pip' });
 
 describe('reducer', () => {
   it('setup creates a profile', () => {
     const s = started();
-    expect(s.save?.childName).toBe('Floor');
+    expect(s.save?.elfName).toBe('Pip');
     expect(s.save?.unlocked).toEqual([0]);
   });
 
@@ -88,9 +88,9 @@ describe('reducer', () => {
     s = reducer(s, { type: 'discovered', island: 2 });
     s = reducer(s, { type: 'discovered', island: 2 });
     expect(s.save!.discovered).toEqual([2]);
-    const imported = { ...emptySave('Anna', 'Lila'), stars: 42 };
+    const imported = { ...emptySave('Lila'), stars: 42 };
     s = reducer(s, { type: 'import', data: parseSave(JSON.parse(JSON.stringify(imported)))! });
-    expect(s.save!.childName).toBe('Anna');
+    expect(s.save!.elfName).toBe('Lila');
     expect(s.save!.stars).toBe(42);
     s = reducer(s, { type: 'reset' });
     expect(s.save).toBeNull();

@@ -15,7 +15,6 @@ export interface Settings {
 
 export interface SaveData {
   version: 1;
-  childName: string;
   elfName: string;
   facts: Record<FactKey, FactState>;
   stars: number;
@@ -32,10 +31,9 @@ export interface SaveData {
   createdAt: string;
 }
 
-export function emptySave(childName = '', elfName = ''): SaveData {
+export function emptySave(elfName = ''): SaveData {
   return {
     version: 1,
-    childName,
     elfName,
     facts: {},
     stars: 0,
@@ -94,7 +92,6 @@ export function parseSave(raw: unknown): SaveData | null {
   const unlocked = numArr(raw.unlocked);
   return {
     version: 1,
-    childName: str(raw.childName, ''),
     elfName: str(raw.elfName, ''),
     facts,
     stars: Math.max(0, num(raw.stars, 0)),

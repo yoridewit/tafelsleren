@@ -1,6 +1,5 @@
 {
   "voice": "7qdUFMklKPaaAVMsBTBt",
-  "childName": "Floor",
   "ids": [
     "album",
     "bijna",
@@ -225,9 +224,7 @@
     "h-9-8",
     "h-9-9",
     "home-0",
-    "home-0.n",
     "home-1",
-    "home-1.n",
     "home-2",
     "nieuw",
     "ontdek-1",
@@ -351,12 +348,9 @@
     "record",
     "res-genoeg",
     "res-goed",
-    "res-goed.n",
     "res-knap",
-    "res-knap.n",
     "res-moeilijk",
     "res-top",
-    "res-top.n",
     "snel-go",
     "snel-klaar",
     "snel-start",
@@ -390,8 +384,6 @@
     "stoppen",
     "test",
     "welkom-1",
-    "welkom-2",
-    "welkom-2.n",
     "welkom-3",
     "winkel-later",
     "winkel-welkom"

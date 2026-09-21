@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NAMED_IDS, PHRASES, factId, hintId, phraseText, phrasesToRecord, questionId, sharedText, spoken, stickerId } from './phrases';
+import { PHRASES, factId, hintId, phraseText, questionId, sharedText, spoken, stickerId } from './phrases';
 import { STICKERS } from './stickers';
 
 describe('phrases', () => {
@@ -22,12 +22,10 @@ describe('phrases', () => {
     for (const s of STICKERS) expect(PHRASES[stickerId(s.id)]).toContain(s.name);
   });
 
-  it('named lines have a version with and without the name', () => {
-    expect(phraseText('home-0', 'Floor')).toBe('Hoi Floor! Zullen we samen oefenen?');
-    expect(phraseText('home-0')).toBe('Hoi! Zullen we samen oefenen?');
-    const rec = phrasesToRecord('Floor');
-    for (const id of NAMED_IDS) expect(rec[`${id}.n`]).toContain('Floor');
-    expect(Object.keys(phrasesToRecord(null))).toEqual(Object.keys(PHRASES));
+  it('greets Floor by name', () => {
+    expect(phraseText('home-0')).toBe('Hoi Floor! Zullen we samen oefenen?');
+    expect(phraseText('welkom-1')).toMatch(/^Hoi Floor!/);
+    expect(Object.keys(PHRASES).some((id) => id.endsWith('.n'))).toBe(false);
   });
 
   it('shared-facts text handles one new fact', () => {

@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NumPad } from '../components/NumPad';
 import { HintCard } from '../components/HintCard';
 import { Elf } from '../components/Elf';
+import { Icon } from '../components/Icon';
+import { TopBar } from '../components/TopBar';
 import { ISLANDS } from '../logic/facts';
 import { FAST_MS } from '../logic/leitner';
 import { buildRound, type Question } from '../logic/round';
@@ -110,29 +112,42 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     }
   };
 
+  // Gewone functie (geen component), zodat React het antwoordvak niet bij elke toets opnieuw opbouwt.
+  const question = (children: ReactNode) => (
+    <div className={`question ${shake ? 'shake' : ''}`}>
+      {q.a}
+      <span className="op">×</span>
+      {q.b}
+      <span className="op">=</span>
+      {children}
+    </div>
+  );
+
   return (
     <div className="screen round" style={{ ['--c' as string]: ISLANDS[island].color }}>
-      <header className="topbar">
-        <button className="btn btn-round btn-white" onClick={() => {
-            setQuit(true);
-            say('stoppen');
-          }} aria-label="stoppen">
-          ✕
-        </button>
-        <div className="dots">
-          {queue.map((_, i) => (
-            <span key={i} className={`pdot ${i < idx ? 'pdot-done' : i === idx ? 'pdot-now' : ''}`} />
-          ))}
-        </div>
-        <span className="pill pill-stars">⭐ {save.stars}</span>
-      </header>
+      <TopBar
+        onBack={() => {
+          setQuit(true);
+          say('stoppen');
+        }}
+        backIcon="close"
+        title={
+          <div className="progress-steps" aria-label={`som ${idx + 1} van ${queue.length}`}>
+            {queue.map((_, i) => (
+              <span key={i} className={`step ${i < idx ? 'step-done' : i === idx ? 'step-now' : ''}`} />
+            ))}
+          </div>
+        }
+        stars={save.stars}
+      />
 
       {phase === 'intro' ? (
         <div className="round-intro">
-          <div className="new-badge">✨ Nieuwe som! ✨</div>
-          <div className="question">
-            {q.a} × {q.b} = <span className="answer-show">{answer}</span>
-          </div>
+          <span className="badge">
+            <Icon name="sparkle" size={18} />
+            Nieuwe som
+          </span>
+          {question(<span className="answer-show">{answer}</span>)}
           <HintCard a={q.a} b={q.b} />
           <button
             className="btn btn-primary btn-big"
@@ -141,39 +156,50 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
               setPhase('ask');
             }}
           >
-            Ik snap het! Nu ik 👉
+            Ik snap het, nu ik!
           </button>
         </div>
       ) : (
         <div className="round-body">
           <div className="round-left">
-            <div className={`question ${shake ? 'shake' : ''}`}>
-              {q.a} × {q.b} ={' '}
-              <span className={`answer-box ${phase === 'right' ? 'answer-right' : ''}`}>
+            {question(
+              <span
+                className={`answer-box ${phase === 'right' ? 'answer-right' : ''} ${!input && phase !== 'right' ? 'answer-empty' : ''}`}
+              >
                 {phase === 'right' ? answer : input || '?'}
-              </span>
-            </div>
-            <button className="btn btn-white btn-small speak-btn" onClick={() => sayQuestion(q.a, q.b)} aria-label="voorlezen">
-              🔊
-            </button>
+              </span>,
+            )}
+            {phase === 'ask' && (
+              <>
+                <button className="btn btn-white btn-icon speak-btn" onClick={() => sayQuestion(q.a, q.b)} aria-label="voorlezen">
+                  <Icon name="speaker" />
+                </button>
+                <div className="elf-stage round-elf">
+                  <Elf wearing={save.wearing} mood="denken" size={140} />
+                </div>
+              </>
+            )}
             {phase === 'right' && (
-              <div className="feedback feedback-right">
+              <div className="feedback-right">
                 <Elf wearing={save.wearing} mood="juichen" size={120} />
-                <span>{praise} +1 ⭐</span>
+                <span>{praise}</span>
+                <span className="star-plus">
+                  <Icon name="star" size={20} />
+                  +1
+                </span>
               </div>
             )}
             {phase === 'wrong' && (
-              <div className="feedback feedback-wrong">
+              <div className="feedback-wrong">
                 <p className="big">
                   Bijna! {q.a} × {q.b} = <b>{answer}</b>. Kijk maar:
                 </p>
                 <HintCard a={q.a} b={q.b} />
                 <p className="big">
-                  Typ nu zelf <b>{answer}</b>. Deze som komt straks nog een keer terug!
+                  Typ nu zelf <b>{answer}</b>. Deze som komt straks nog een keer terug.
                 </p>
               </div>
             )}
-            {phase === 'ask' && <Elf wearing={save.wearing} mood="denken" size={130} className="round-elf" />}
           </div>
           <div className="round-right">
             <NumPad value={input} onChange={setInput} onSubmit={submit} disabled={phase === 'right'} />
@@ -184,13 +210,13 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
       {quit && (
         <div className="modal-bg">
           <div className="modal">
-            <p className="big">Wil je stoppen met deze ronde?</p>
+            <h2>Wil je stoppen met deze ronde?</h2>
             <div className="row">
               <button className="btn btn-white btn-big" onClick={() => go({ name: 'island', island })}>
                 Stoppen
               </button>
               <button className="btn btn-primary btn-big" onClick={() => setQuit(false)}>
-                Doorgaan!
+                Doorgaan
               </button>
             </div>
           </div>

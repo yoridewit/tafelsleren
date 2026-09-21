@@ -1,4 +1,4 @@
-const COLORS = ['#f472b6', '#fb923c', '#facc15', '#4ade80', '#2dd4bf', '#38bdf8', '#818cf8', '#c084fc', '#f87171', '#a3e635'];
+const COLORS = ['#f472b6', '#fb923c', '#f5b82e', '#34d399', '#2dd4bf', '#60a5fa', '#818cf8', '#a78bfa', '#f87171', '#84cc16'];
 
 /** a groepjes van b stippen, stippen in rijtjes van 5 zodat je vijftallen ziet. */
 export function Groups({ a, b, small = false }: { a: number; b: number; small?: boolean }) {

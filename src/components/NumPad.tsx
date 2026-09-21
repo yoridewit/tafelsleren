@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { sound } from '../audio';
+import { Icon } from './Icon';
 
 interface Props {
   value: string;
@@ -50,7 +51,7 @@ export function NumPad({ value, onChange, onSubmit, disabled = false, maxLength 
           disabled={disabled || (k === 'ok' && value === '')}
           aria-label={k === 'del' ? 'wissen' : k === 'ok' ? 'klaar' : k}
         >
-          {k === 'del' ? '⌫' : k === 'ok' ? '✓' : k}
+          {k === 'del' ? <Icon name="backspace" /> : k === 'ok' ? <Icon name="check" size={34} /> : k}
         </button>
       ))}
     </div>

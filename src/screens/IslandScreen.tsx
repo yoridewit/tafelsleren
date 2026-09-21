@@ -5,11 +5,12 @@ import { factStatus } from '../logic/leitner';
 import { islandProgress, sharedWithEarlier } from '../logic/progress';
 import { useSave } from '../state/store';
 import { useEffect } from 'react';
+import { Icon } from '../components/Icon';
 import { say, sayOnce } from '../audio';
 import { phraseText, sharedId } from '../data/phrases';
 import type { Go } from '../nav';
 
-const STATUS_LABEL = { nieuw: 'nieuw', oefenen: 'oefenen', bijna: 'bijna!', gekend: 'kan ik!' };
+const STATUS_LABEL = { nieuw: 'nieuw', oefenen: 'aan het oefenen', bijna: 'bijna', gekend: 'kan ik' };
 
 export function IslandScreen({ island, go }: { island: number; go: Go }) {
   const { save } = useSave();
@@ -25,50 +26,79 @@ export function IslandScreen({ island, go }: { island: number; go: Go }) {
       : discovered
         ? 'eiland-oefen'
         : 'eiland-ontdek';
-  const message = phraseText(messageId, save.childName);
+  const message = phraseText(messageId);
 
   useEffect(() => sayOnce(`${messageId}-${island}`, messageId), [messageId, island]);
 
   return (
     <div className="screen island-screen" style={{ ['--c' as string]: isl.color }}>
-      <TopBar onBack={() => go({ name: 'home' })} title={`${isl.emoji} ${isl.name}`} stars={save.stars} />
+      <TopBar
+        onBack={() => go({ name: 'home' })}
+        title={
+          <>
+            <span aria-hidden>{isl.emoji}</span> {isl.name}
+          </>
+        }
+        stars={save.stars}
+      />
       <div className="island-body">
-        <div className="island-left">
-          <button className="bubble bubble-btn" onClick={() => say(messageId)}>
+        <div className="island-side">
+          <button className="bubble" onClick={() => say(messageId)}>
             {message}
+            <Icon name="speaker" />
           </button>
-          <Elf wearing={save.wearing} size="100%" mood={p.mastered ? 'juichen' : 'blij'} />
+          <div className="elf-stage">
+            <Elf wearing={save.wearing} size="100%" mood={p.mastered ? 'juichen' : 'blij'} />
+          </div>
         </div>
-        <div className="island-right">
-          <div className="progress-bar">
-            <div className="progress-known" style={{ width: `${(p.known / p.total) * 100}%` }} />
-            <div className="progress-almost" style={{ width: `${(p.almost / p.total) * 100}%` }} />
-          </div>
-          <div className="progress-label">
-            {p.known} van de {p.total} sommen kan je al uit je hoofd
-          </div>
-          {isl.tables.map((t) => (
-            <div className="fact-chips" key={t}>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((a) => {
-                const st = factStatus(save.facts[factKey(a, t)]);
-                return (
-                  <span key={a} className={`fact-chip st-${st}`} title={STATUS_LABEL[st]}>
-                    {a} × {t}
-                    {st === 'gekend' && ' ✓'}
-                  </span>
-                );
-              })}
+        <div className="island-main">
+          <div className="panel-card">
+            <div className="progress-head">
+              <strong>Uit je hoofd</strong>
+              <span>
+                {p.known} van de {p.total}
+              </span>
             </div>
-          ))}
+            <div className="progress-bar">
+              <div className="progress-known" style={{ width: `${(p.known / p.total) * 100}%` }} />
+              <div className="progress-almost" style={{ width: `${(p.almost / p.total) * 100}%` }} />
+            </div>
+            {isl.tables.map((t) => (
+              <div className="fact-chips" key={t}>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((a) => {
+                  const st = factStatus(save.facts[factKey(a, t)]);
+                  return (
+                    <span key={a} className={`fact-chip st-${st}`} title={STATUS_LABEL[st]}>
+                      {a} × {t}
+                      {st === 'gekend' && <Icon name="check" />}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
+            <div className="legend">
+              {(['nieuw', 'oefenen', 'bijna', 'gekend'] as const).map((st) => (
+                <span key={st}>
+                  <i className={`st-${st}`} />
+                  {STATUS_LABEL[st]}
+                </span>
+              ))}
+            </div>
+          </div>
           <div className="island-buttons">
-            <button className={`btn ${discovered ? 'btn-white' : 'btn-yellow'} btn-big`} onClick={() => go({ name: 'discover', island })}>
-              🔍 Ontdekken
+            <button
+              className={`btn ${discovered ? 'btn-white' : 'btn-soft'} btn-big`}
+              onClick={() => go({ name: 'discover', island })}
+            >
+              <Icon name="search" />
+              Ontdekken
             </button>
             <button
               className="btn btn-primary btn-huge"
               onClick={() => go(discovered ? { name: 'round', island } : { name: 'discover', island })}
             >
-              ▶ Oefenen!
+              <Icon name="play" size={28} />
+              Oefenen
             </button>
           </div>
         </div>

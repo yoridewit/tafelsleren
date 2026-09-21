@@ -2,15 +2,13 @@
  * Alle zinnen die de app hardop zegt. Ze worden met `npm run audio` ingesproken (ElevenLabs) en als
  * public/audio/<id>.mp3 opgeslagen. De schermen tonen dezelfde tekst via `phraseText`, zodat wat er staat
  * en wat het elfje zegt altijd gelijk is.
- *
- * Zinnen met een naam (functies) worden twee keer ingesproken: zonder naam (`<id>.mp3`) en met de naam uit
- * CHILD_NAME (`<id>.n.mp3`). De app gebruikt de versie met naam alleen als die naam klopt.
  */
 import { hintFor } from '../logic/hints';
 import { ISLANDS } from '../logic/facts';
 import { STICKERS } from './stickers';
 
-type Line = string | ((name: string | null) => string);
+/** De app is voor één kind gemaakt. */
+export const CHILD_NAME = 'Floor';
 
 export const PRAISE = ['Goed zo!', 'Super!', 'Knap hoor!', 'Toppie!', 'Jippie!', 'Wauw!', 'Heel goed!'];
 
@@ -22,8 +20,6 @@ export const sharedId = (shared: number) => `eiland-gedeeld-${shared}`;
 export const discoverDoneId = (n: number) => `ontdek-${n}`;
 export const islandOpenId = (i: number) => `eiland-open-${i}`;
 export const stickerId = (id: string) => `sticker-${id}`;
-
-const hi = (name: string | null, text: string, sep = ' ') => (name ? `${text},${sep}${name}!` : `${text}!`);
 
 /** Maakt van een rekenstap iets wat je kunt uitspreken: "5 × 7 = 35" → "5 keer 7 is 35". */
 export function spoken(step: string): string {
@@ -43,7 +39,7 @@ export function sharedText(shared: number, total: number): string {
   }`;
 }
 
-const LINES: Record<string, Line> = {};
+const LINES: Record<string, string> = {};
 
 for (let a = 1; a <= 10; a++)
   for (let b = 1; b <= 10; b++) {
@@ -60,14 +56,12 @@ Object.assign(LINES, {
   test: 'Hoi! Zeven keer zes is tweeënveertig. Goed zo!',
 
   // welkom
-  'welkom-1': 'Hoi! Ik ben een elfje. Samen gaan we de tafels leren. Hoe heet jij?',
-  'welkom-2': (n: string | null) =>
-    `${hi(n, 'Leuk je te ontmoeten')} Ik heb nog geen naam. Wil jij er een voor mij kiezen?`,
+  'welkom-1': `Hoi ${CHILD_NAME}! Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij kiezen?`,
   'welkom-3': 'Joepie! Laten we beginnen!',
 
   // kaart
-  'home-0': (n: string | null) => `${n ? `Hoi ${n}!` : 'Hoi!'} Zullen we samen oefenen?`,
-  'home-1': (n: string | null) => `${hi(n, 'Goed bezig')} Nog één rondje?`,
+  'home-0': `Hoi ${CHILD_NAME}! Zullen we samen oefenen?`,
+  'home-1': `Goed bezig, ${CHILD_NAME}! Nog één rondje?`,
   'home-2': 'Super! Genoeg geoefend vandaag. Morgen weer?',
 
   // eiland
@@ -79,9 +73,9 @@ Object.assign(LINES, {
   stoppen: 'Wil je stoppen met deze ronde?',
 
   // resultaat
-  'res-top': (n: string | null) => hi(n, 'Fantastisch'),
-  'res-goed': (n: string | null) => hi(n, 'Goed gedaan'),
-  'res-knap': (n: string | null) => hi(n, 'Knap geoefend'),
+  'res-top': `Fantastisch, ${CHILD_NAME}!`,
+  'res-goed': `Goed gedaan, ${CHILD_NAME}!`,
+  'res-knap': `Knap geoefend, ${CHILD_NAME}!`,
   'res-moeilijk': 'Moeilijke sommen komen vaker terug. Zo leer je ze vanzelf!',
   'res-genoeg': 'Je hebt vandaag al heel wat rondes gedaan. Wat knap! Je hersenen onthouden het beste als je morgen weer even oefent.',
 
@@ -112,22 +106,10 @@ for (const s of STICKERS) LINES[stickerId(s.id)] = `Je hebt een nieuwe sticker v
 
 export { discoverTip };
 
-/** Ids waarvan ook een versie met naam bestaat. */
-export const NAMED_IDS = Object.keys(LINES).filter((id) => typeof LINES[id] === 'function');
-
-/** Tekst van een zin, eventueel met naam. */
-export function phraseText(id: string, name: string | null = null): string {
-  const line = LINES[id];
-  if (line === undefined) return '';
-  return typeof line === 'function' ? line(name) : line;
+/** Tekst van een zin. */
+export function phraseText(id: string): string {
+  return LINES[id] ?? '';
 }
 
-/** Alle zinnen zonder naam (de basisset). */
-export const PHRASES: Record<string, string> = Object.fromEntries(Object.keys(LINES).map((id) => [id, phraseText(id)]));
-
-/** Alles wat het script moet inspreken: de basisset plus `<id>.n` met de naam. */
-export function phrasesToRecord(childName: string | null): Record<string, string> {
-  const out = { ...PHRASES };
-  if (childName) for (const id of NAMED_IDS) out[`${id}.n`] = phraseText(id, childName);
-  return out;
-}
+/** Alle zinnen, op id. */
+export const PHRASES: Record<string, string> = { ...LINES };

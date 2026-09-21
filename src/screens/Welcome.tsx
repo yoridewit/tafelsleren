@@ -1,68 +1,55 @@
 import { useEffect, useState } from 'react';
 import { Elf } from '../components/Elf';
+import { Icon } from '../components/Icon';
 import { useStore } from '../state/store';
-import { say, setChildName, sound } from '../audio';
-import { phraseText } from '../data/phrases';
+import { say, sound } from '../audio';
+import { CHILD_NAME } from '../data/phrases';
 
 const ELF_NAMES = ['Pip', 'Fleur', 'Lila', 'Sprankel', 'Juul', 'Tinka'];
 
 export function Welcome() {
   const { dispatch } = useStore();
-  const [step, setStep] = useState(0);
-  const [child, setChild] = useState('');
   const [elf, setElf] = useState('');
 
-  useEffect(() => {
-    if (step === 0) say('welkom-1');
-    else {
-      setChildName(child.trim());
-      say('welkom-2');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  useEffect(() => say('welkom-1'), []);
 
   return (
     <div className="screen welcome">
-      <Elf size={200} mood={step === 1 ? 'juichen' : 'blij'} className="float" />
-      {step === 0 ? (
-        <div className="card welcome-card">
-          <h1>Hoi! Ik ben een elfje ✨</h1>
-          <p className="big">Samen gaan we de tafels leren. Hoe heet jij?</p>
-          <input
-            className="text-input"
-            value={child}
-            onChange={(e) => setChild(e.target.value)}
-            placeholder="Jouw naam"
-            maxLength={20}
-            autoFocus
-          />
-          <button className="btn btn-primary btn-big" disabled={!child.trim()} onClick={() => { sound.tap(); setStep(1); }}>
-            Verder →
-          </button>
+      <div className="elf-stage">
+        <Elf size={160} mood="juichen" className="float" />
+      </div>
+      <div className="card welcome-card">
+        <h1>Hoi {CHILD_NAME}!</h1>
+        <p className="big">
+          Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij
+          kiezen?
+        </p>
+        <div className="chips">
+          {ELF_NAMES.map((n) => (
+            <button key={n} className={`chip ${elf === n ? 'chip-on' : ''}`} onClick={() => setElf(n)}>
+              {n}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="card welcome-card">
-          <p className="big">{phraseText('welkom-2', child.trim())}</p>
-          <div className="chips">
-            {ELF_NAMES.map((n) => (
-              <button key={n} className={`chip ${elf === n ? 'chip-on' : ''}`} onClick={() => setElf(n)}>
-                {n}
-              </button>
-            ))}
-          </div>
-          <input className="text-input" value={elf} onChange={(e) => setElf(e.target.value)} placeholder="Of verzin er zelf een" maxLength={20} />
-          <button
-            className="btn btn-primary btn-big"
-            disabled={!elf.trim()}
-            onClick={() => {
-              sound.fanfare();
-              dispatch({ type: 'setup', childName: child.trim(), elfName: elf.trim() });
-            }}
-          >
-            Beginnen! 🚀
-          </button>
-        </div>
-      )}
+        <input
+          className="text-input"
+          value={elf}
+          onChange={(e) => setElf(e.target.value)}
+          placeholder="Of verzin er zelf een"
+          maxLength={20}
+        />
+        <button
+          className="btn btn-primary btn-big"
+          disabled={!elf.trim()}
+          onClick={() => {
+            sound.fanfare();
+            dispatch({ type: 'setup', elfName: elf.trim() });
+          }}
+        >
+          Beginnen
+          <Icon name="play" />
+        </button>
+      </div>
     </div>
   );
 }

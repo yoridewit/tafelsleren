@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NumPad } from '../components/NumPad';
 import { TopBar } from '../components/TopBar';
 import { Elf } from '../components/Elf';
+import { Icon } from '../components/Icon';
 import { Celebration } from '../components/Celebration';
 import { orientFact, type FactKey } from '../logic/facts';
 import { strongFacts } from '../logic/progress';
@@ -76,16 +77,23 @@ export function SpeedGame({ go }: { go: Go }) {
 
   return (
     <div className="screen speed">
-      <TopBar onBack={() => go({ name: 'home' })} title="⚡ Snelspel" stars={save.stars} />
+      <TopBar onBack={() => go({ name: 'home' })} title="Snelspel" stars={save.stars} />
       {phase === 'start' && (
         <div className="card center-card">
-          <Elf wearing={save.wearing} size={160} />
-          <p className="big">
-            Hoeveel sommen kun jij goed doen in 1 minuut? Alleen sommen die je al kent!
-          </p>
-          <p className="big">Jouw record: {save.speedRecord}</p>
+          <div className="elf-stage">
+            <Elf wearing={save.wearing} size={160} />
+          </div>
+          <h1>Hoeveel sommen in 1 minuut?</h1>
+          <p className="big">Alleen sommen die je al kent. Probeer je record te verbreken!</p>
+          <div className="score-row">
+            <div className="score-tile">
+              <strong>{save.speedRecord}</strong>
+              <span>jouw record</span>
+            </div>
+          </div>
           <button className="btn btn-primary btn-huge" onClick={() => setPhase('play')}>
-            Start! ⚡
+            <Icon name="bolt" size={28} />
+            Start
           </button>
         </div>
       )}
@@ -95,10 +103,16 @@ export function SpeedGame({ go }: { go: Go }) {
             <div className="timer">
               <div className="timer-fill" style={{ width: `${(left / DURATION) * 100}%` }} />
             </div>
-            <div className="speed-score">✅ {score}</div>
+            <div className="speed-score">
+              <Icon name="check" />
+              {score}
+            </div>
             <div className={`question ${flash === 'wrong' ? 'shake' : ''}`}>
-              {q.a} × {q.b} ={' '}
-              <span className={`answer-box ${flash === 'right' ? 'answer-right' : ''}`}>
+              {q.a}
+              <span className="op">×</span>
+              {q.b}
+              <span className="op">=</span>
+              <span className={`answer-box ${flash === 'right' ? 'answer-right' : ''} ${!input && !flash ? 'answer-empty' : ''}`}>
                 {flash === 'wrong' ? q.a * q.b : input || '?'}
               </span>
             </div>
@@ -110,13 +124,26 @@ export function SpeedGame({ go }: { go: Go }) {
       )}
       {phase === 'end' && (
         <div className="card center-card">
-          <Elf wearing={save.wearing} mood="juichen" size={160} className="bounce" />
-          <h1>{score} sommen goed!</h1>
-          {score > oldRecord ? <p className="big">🏆 Nieuw record!</p> : <p className="big">Je record is {oldRecord}.</p>}
-          <div className="stars-earned">+{speedReward(score)} ⭐</div>
+          <div className="elf-stage">
+            <Elf wearing={save.wearing} mood="juichen" size={160} className="bounce" />
+          </div>
+          <h1>{score > oldRecord ? 'Nieuw record!' : 'De tijd is op!'}</h1>
+          <div className="score-row">
+            <div className="score-tile">
+              <strong>{score}</strong>
+              <span>{score > oldRecord ? `vorig record: ${oldRecord}` : `record: ${oldRecord}`}</span>
+            </div>
+            <div className="score-tile gold">
+              <strong>
+                <Icon name="star" size={28} />+{speedReward(score)}
+              </strong>
+              <span>sterren verdiend</span>
+            </div>
+          </div>
           <div className="row">
             <button className="btn btn-white btn-big" onClick={() => go({ name: 'home' })}>
-              🗺️ Naar de kaart
+              <Icon name="map" />
+              Naar de kaart
             </button>
             <button
               className="btn btn-primary btn-big"
@@ -129,6 +156,7 @@ export function SpeedGame({ go }: { go: Go }) {
                 setPhase('play');
               }}
             >
+              <Icon name="replay" />
               Nog een keer
             </button>
           </div>

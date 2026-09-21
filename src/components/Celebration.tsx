@@ -40,12 +40,12 @@ export function Celebration() {
         ))}
       </div>
       <div className="modal celebrate">
-        <h2>Hoera! 🎉</h2>
+        <h2>Hoera!</h2>
         {unlocks.map((i) => (
           <div key={i} className="celebrate-item">
             <span className="celebrate-emoji">{ISLANDS[i].emoji}</span>
             <span>
-              Nieuw eiland open: <b>{ISLANDS[i].name}</b>!
+              Nieuw eiland: <b>{ISLANDS[i].name}</b>
             </span>
           </div>
         ))}

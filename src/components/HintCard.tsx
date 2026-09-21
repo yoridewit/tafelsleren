@@ -1,12 +1,16 @@
 import { hintFor } from '../logic/hints';
 import { Groups } from './Groups';
+import { Icon } from './Icon';
 
 /** Strategie-uitleg voor a × b, met groepjes erbij. */
 export function HintCard({ a, b }: { a: number; b: number }) {
   const h = hintFor(a, b);
   return (
     <div className="hint">
-      <div className="hint-title">💡 {h.title}</div>
+      <div className="hint-title">
+        <Icon name="sparkle" />
+        {h.title}
+      </div>
       <div className="hint-tip">{h.tip}</div>
       <ul className="hint-steps">
         {h.steps.map((s) => (

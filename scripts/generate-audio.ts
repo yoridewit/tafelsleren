@@ -8,11 +8,11 @@
  *   npm run audio -- --voices              # toon de stemmen in je account
  *
  * Optioneel in .env.local: ELEVENLABS_VOICE_ID (standaard: Sarah), ELEVENLABS_MODEL
- * (standaard: eleven_multilingual_v2) en CHILD_NAME (dan komen er ook zinnen met die naam bij).
+ * (standaard: eleven_multilingual_v2).
  */
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { phrasesToRecord } from '../src/data/phrases';
+import { PHRASES } from '../src/data/phrases';
 
 const API = 'https://api.elevenlabs.io/v1';
 const OUT_DIR = join(import.meta.dirname, '..', 'public', 'audio');
@@ -25,8 +25,6 @@ try {
 }
 
 const key = process.env.ELEVENLABS_API_KEY;
-const childName = process.env.CHILD_NAME?.trim() || null;
-const PHRASES = phrasesToRecord(childName);
 const voiceId = process.env.ELEVENLABS_VOICE_ID ?? 'EXAVITQu4vr4xnSDxMaL';
 const model = process.env.ELEVENLABS_MODEL ?? 'eleven_multilingual_v2';
 const args = process.argv.slice(2);
@@ -71,7 +69,7 @@ function writeManifest() {
     .map((f) => f.slice(0, -4))
     .filter((id) => id in PHRASES)
     .sort();
-  writeFileSync(MANIFEST, JSON.stringify({ voice: voiceId, childName, ids }, null, 2) + '\n');
+  writeFileSync(MANIFEST, JSON.stringify({ voice: voiceId, ids }, null, 2) + '\n');
   return ids.length;
 }
 

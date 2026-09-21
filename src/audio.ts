@@ -137,21 +137,15 @@ export function speak(text: string, force = false) {
 
 /* ---------- ingesproken zinnen (ElevenLabs, zie scripts/generate-audio.ts) ---------- */
 
-const manifest = manifestJson as { voice: string | null; childName: string | null; ids: string[] };
+const manifest = manifestJson as { voice: string | null; ids: string[] };
 const recorded = new Set<string>(manifest.ids);
-const recordedName = manifest.childName?.toLowerCase() ?? null;
 const buffers = new Map<string, Promise<AudioBuffer>>();
 let current: AudioBufferSourceNode | null = null;
 let playToken = 0;
-let childName: string | null = null;
 let talkListener: (talking: boolean) => void = () => {};
 
 export function hasRecordedVoice(): boolean {
   return recorded.size > 0;
-}
-
-export function setChildName(name: string | null) {
-  childName = name;
 }
 
 /** Laat bijv. de muziek weten wanneer het elfje praat (om zachter te gaan). */
@@ -186,9 +180,7 @@ function stopTalking() {
   talkListener(false);
 }
 
-/** Welk bestand hoort bij deze zin: de versie met naam als die voor dit kind is ingesproken. */
 function recordingFor(id: string): string | null {
-  if (childName && recordedName === childName.toLowerCase() && recorded.has(`${id}.n`)) return `${id}.n`;
   return recorded.has(id) ? id : null;
 }
 
@@ -226,7 +218,7 @@ async function playOne(id: string, token: number) {
       // geen opname beschikbaar: dan de stem van het apparaat
     }
   }
-  if (token === playToken) await speakAndWait(phraseText(id, childName));
+  if (token === playToken) await speakAndWait(phraseText(id));
 }
 
 /**

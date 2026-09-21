@@ -15,7 +15,7 @@ export interface AppState {
 }
 
 export type Action =
-  | { type: 'setup'; childName: string; elfName: string }
+  | { type: 'setup'; elfName: string }
   | { type: 'answer'; key: FactKey; correct: boolean; ms: number; today: string }
   | { type: 'finishRound'; correct: number; today: string }
   | { type: 'speedDone'; score: number; today: string }
@@ -25,7 +25,7 @@ export type Action =
   | { type: 'discovered'; island: number }
   | { type: 'unlock'; island: number }
   | { type: 'settings'; patch: Partial<Settings> }
-  | { type: 'rename'; childName: string; elfName: string }
+  | { type: 'rename'; elfName: string }
   | { type: 'import'; data: SaveData }
   | { type: 'reset' }
   | { type: 'clearCelebrations' };
@@ -67,7 +67,7 @@ function afterPlay(state: AppState, save: SaveData, today: string): AppState {
 }
 
 export function reducer(state: AppState, action: Action): AppState {
-  if (action.type === 'setup') return initialState(emptySave(action.childName, action.elfName));
+  if (action.type === 'setup') return initialState(emptySave(action.elfName));
   if (action.type === 'import') return initialState(action.data);
   if (action.type === 'reset') return initialState(null);
   if (action.type === 'clearCelebrations') return { ...state, newStickers: [], newUnlocks: [] };
@@ -125,6 +125,6 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'settings':
       return set({ settings: { ...save.settings, ...action.patch } });
     case 'rename':
-      return set({ childName: action.childName, elfName: action.elfName });
+      return set({ elfName: action.elfName });
   }
 }

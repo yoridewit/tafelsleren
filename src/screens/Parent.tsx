@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { TopBar } from '../components/TopBar';
+import { Icon } from '../components/Icon';
 import { ISLANDS, factKey } from '../logic/facts';
 import { factStatus } from '../logic/leitner';
 import { islandProgress, knownCount } from '../logic/progress';
@@ -14,7 +15,6 @@ const STATUS_TEXT = { nieuw: 'Nog niet geoefend', oefenen: 'Aan het oefenen', bi
 
 export function Parent({ go }: { go: Go }) {
   const { save, dispatch, today } = useSave();
-  const [child, setChild] = useState(save.childName);
   const [elf, setElf] = useState(save.elfName);
   const [msg, setMsg] = useState('');
   const [detail, setDetail] = useState('');
@@ -50,7 +50,7 @@ export function Parent({ go }: { go: Go }) {
     try {
       const data = parseSave(JSON.parse(await file.text()));
       if (!data) throw new Error();
-      if (confirm(`Voortgang van ${data.childName || 'dit bestand'} terugzetten? De huidige voortgang wordt vervangen.`)) {
+      if (confirm('Deze back-up terugzetten? De huidige voortgang wordt vervangen.')) {
         dispatch({ type: 'import', data });
         setMsg('Back-up teruggezet.');
       }
@@ -72,12 +72,19 @@ export function Parent({ go }: { go: Go }) {
         <section className="panel">
           <h2>In het kort</h2>
           <div className="stats">
-            <div><b>{knownCount(save.facts)}</b>/55 sommen uit het hoofd</div>
-            <div><b>{save.practiceDays.length}</b> oefendagen</div>
-            <div><b>{currentStreak(save.practiceDays, today)}</b> dagen reeks</div>
-            <div><b>{save.roundsDone}</b> rondes</div>
-            <div><b>{save.speedRecord}</b> snelspel-record</div>
-            <div><b>{save.stars}</b> sterren</div>
+            {[
+              [`${knownCount(save.facts)}/55`, 'uit het hoofd'],
+              [save.practiceDays.length, 'oefendagen'],
+              [currentStreak(save.practiceDays, today), 'dagen reeks'],
+              [save.roundsDone, 'rondes'],
+              [save.speedRecord, 'snelspel-record'],
+              [save.stars, 'sterren'],
+            ].map(([v, label]) => (
+              <div className="stat" key={label}>
+                <b>{v}</b>
+                <span>{label}</span>
+              </div>
+            ))}
           </div>
           <p className="muted">
             Een som telt als "uit het hoofd" als ze hem op minstens 2 verschillende dagen binnen 4 seconden goed had en hij
@@ -116,7 +123,8 @@ export function Parent({ go }: { go: Go }) {
           <div className="legend">
             {(['nieuw', 'oefenen', 'bijna', 'gekend'] as const).map((s) => (
               <span key={s}>
-                <i className={`grid-cell st-${s}`} /> {STATUS_TEXT[s]}
+                <i className={`st-${s}`} />
+                {STATUS_TEXT[s]}
               </span>
             ))}
           </div>
@@ -225,7 +233,8 @@ export function Parent({ go }: { go: Go }) {
               ))}
             </select>
             <button className="btn btn-white btn-small" onClick={() => testVoice(save.settings.voice)}>
-              🔊 Test
+              <Icon name="speaker" size={20} />
+              Test
             </button>
           </div>
           {voices.length === 0 && (
@@ -241,17 +250,16 @@ export function Parent({ go }: { go: Go }) {
             hierboven.
           </p>
           <div className="row">
-            <input className="text-input small" value={child} onChange={(e) => setChild(e.target.value)} aria-label="naam kind" />
             <input className="text-input small" value={elf} onChange={(e) => setElf(e.target.value)} aria-label="naam elfje" />
             <button
               className="btn btn-white btn-small"
-              disabled={!child.trim() || !elf.trim()}
+              disabled={!elf.trim()}
               onClick={() => {
-                dispatch({ type: 'rename', childName: child.trim(), elfName: elf.trim() });
-                setMsg('Namen opgeslagen.');
+                dispatch({ type: 'rename', elfName: elf.trim() });
+                setMsg('Naam van het elfje opgeslagen.');
               }}
             >
-              Namen opslaan
+              Naam elfje opslaan
             </button>
           </div>
         </section>
@@ -264,13 +272,16 @@ export function Parent({ go }: { go: Go }) {
           </p>
           <div className="row">
             <button className="btn btn-primary btn-small" onClick={exportBackup}>
-              ⬇️ Back-up downloaden
+              <Icon name="download" size={20} />
+              Back-up downloaden
             </button>
             <button className="btn btn-white btn-small" onClick={() => fileRef.current?.click()}>
-              ⬆️ Back-up terugzetten
+              <Icon name="upload" size={20} />
+              Back-up terugzetten
             </button>
             <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={importBackup} />
             <button className="btn btn-danger btn-small" onClick={reset}>
+              <Icon name="trash" size={20} />
               Alles wissen
             </button>
           </div>

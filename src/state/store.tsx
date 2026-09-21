@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useReducer, type Dispatch, type R
 import { reducer, initialState, type Action, type AppState } from './reducer';
 import { loadSave, writeSave } from '../logic/storage';
 import { dayKey } from '../logic/dates';
-import { onTalking, setAudioPrefs, setChildName, setPreferredVoice } from '../audio';
+import { onTalking, setAudioPrefs, setPreferredVoice } from '../audio';
 import { duckMusic, setMusicEnabled } from '../music';
 
 onTalking(duckMusic);
@@ -26,7 +26,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   setAudioPrefs(settings?.sound ?? true, settings?.speech ?? true);
   setPreferredVoice(settings?.voice ?? null);
   setMusicEnabled(settings?.music ?? true);
-  if (state.save) setChildName(state.save.childName);
 
   return <StoreContext.Provider value={{ state, dispatch, today: dayKey() }}>{children}</StoreContext.Provider>;
 }

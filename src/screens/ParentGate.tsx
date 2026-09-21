@@ -15,12 +15,16 @@ export function ParentGate({ go }: { go: Go }) {
 
   return (
     <div className="screen gate">
-      <TopBar onBack={() => go({ name: 'home' })} title="🔒 Voor ouders" />
+      <TopBar onBack={() => go({ name: 'home' })} title="Voor ouders" />
       <div className="round-body">
         <div className="round-left">
           <p className="big">Dit deel is voor papa of mama. Los deze som op:</p>
           <div className="question">
-            {q.a} × {q.b} = <span className="answer-box">{input || '?'}</span>
+            {q.a}
+            <span className="op">×</span>
+            {q.b}
+            <span className="op">=</span>
+            <span className={`answer-box ${input ? '' : 'answer-empty'}`}>{input || '?'}</span>
           </div>
           {wrong && <p className="big">Dat klopt niet. Probeer deze:</p>}
         </div>

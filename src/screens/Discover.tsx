@@ -3,6 +3,7 @@ import { TopBar } from '../components/TopBar';
 import { Groups } from '../components/Groups';
 import { NumberLine } from '../components/NumberLine';
 import { Elf } from '../components/Elf';
+import { Icon } from '../components/Icon';
 import { ISLANDS } from '../logic/facts';
 import { useSave } from '../state/store';
 import { say, sayFact, sound } from '../audio';
@@ -45,25 +46,32 @@ export function Discover({ island, go }: { island: number; go: Go }) {
 
   return (
     <div className="screen discover">
-      <TopBar onBack={() => go({ name: 'island', island })} title={`🔍 De tafel van ${n}`} stars={save.stars} />
+      <TopBar onBack={() => go({ name: 'island', island })} title={`De tafel van ${n}`} stars={save.stars} />
       {!summary ? (
         <div className="discover-body">
           <p className="big center">
             {k === 1 ? `Eén groepje van ${n}.` : `${k} groepjes van ${n}.`} Hoeveel zijn dat samen?
           </p>
           <div className="discover-sum">
-            {k} × {n} = <b>{k * n}</b>
+            {k}
+            <span className="op">×</span>
+            {n}
+            <span className="op">=</span>
+            <b>{k * n}</b>
           </div>
           <Groups a={k} b={n} />
           <NumberLine n={n} jumps={k} />
           <button className="btn btn-primary btn-big" onClick={next}>
-            {k < 10 ? 'Nog een groepje erbij ➕' : 'Klaar! 🎉'}
+            {k < 10 ? 'Nog een groepje erbij' : 'Klaar!'}
+            {k < 10 && <span aria-hidden>+</span>}
           </button>
         </div>
       ) : (
         <div className="discover-body">
-          <div className="discover-summary">
-            <Elf wearing={save.wearing} mood="juichen" size={160} />
+          <div className="discover-summary card">
+            <div className="elf-stage">
+              <Elf wearing={save.wearing} mood="juichen" size={170} />
+            </div>
             <div>
               <p className="big">Deze sommen zijn extra handig. Daarmee kun je de andere uitrekenen!</p>
               <div className="anchors">
@@ -77,7 +85,8 @@ export function Discover({ island, go }: { island: number; go: Go }) {
             </div>
           </div>
           <button className="btn btn-primary btn-big" onClick={finish}>
-            {ti + 1 < tables.length ? `Nu de tafel van ${tables[ti + 1]} →` : 'Aan de slag! ▶'}
+            {ti + 1 < tables.length ? `Nu de tafel van ${tables[ti + 1]}` : 'Aan de slag'}
+            <Icon name="play" />
           </button>
         </div>
       )}

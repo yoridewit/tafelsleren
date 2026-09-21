@@ -11,7 +11,7 @@ export function Album({ go }: { go: Go }) {
   useEffect(() => say('album'), []);
   return (
     <div className="screen album">
-      <TopBar onBack={() => go({ name: 'home' })} title={`📖 Stickers (${count}/${STICKERS.length})`} stars={save.stars} />
+      <TopBar onBack={() => go({ name: 'home' })} title={`Stickerboek · ${count}/${STICKERS.length}`} stars={save.stars} />
       <div className="sticker-grid">
         {STICKERS.map((s) => {
           const has = save.stickers.includes(s.id);

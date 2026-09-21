@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Elf } from '../components/Elf';
+import { Icon } from '../components/Icon';
 import { Celebration } from '../components/Celebration';
 import { useSave } from '../state/store';
 import { say, sound } from '../audio';
@@ -33,25 +34,40 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
   return (
     <div className="screen result">
       <div className="result-card card">
-        <Elf wearing={save.wearing} mood="juichen" size={180} className="bounce" />
-        <h1>
-          {phraseText(titleId, save.childName)}
-        </h1>
-        <p className="big">
-          {correct} van de {total} sommen in één keer goed
-        </p>
-        <div className="stars-earned">+{stars} ⭐</div>
+        <div className="elf-stage">
+          <Elf wearing={save.wearing} mood="juichen" size={170} className="bounce" />
+        </div>
+        <h1>{phraseText(titleId)}</h1>
+        <div className="score-row">
+          <div className="score-tile">
+            <strong>
+              {correct}/{total}
+            </strong>
+            <span>in één keer goed</span>
+          </div>
+          <div className="score-tile gold">
+            <strong>
+              <Icon name="star" size={28} />+{stars}
+            </strong>
+            <span>sterren verdiend</span>
+          </div>
+        </div>
         {roundsToday >= 3 ? (
-          <p className="big">{phraseText('res-genoeg')} 🌙</p>
+          <p className="big">{phraseText('res-genoeg')}</p>
         ) : ratio < 0.6 ? (
           <p className="big">{phraseText('res-moeilijk')}</p>
         ) : null}
         <div className="row">
           <button className="btn btn-white btn-big" onClick={() => go({ name: 'home' })}>
-            🗺️ Naar de kaart
+            <Icon name="map" />
+            Naar de kaart
           </button>
-          <button className={`btn ${roundsToday >= 3 ? 'btn-white' : 'btn-primary'} btn-big`} onClick={() => go({ name: 'round', island })}>
-            ▶ Nog een ronde
+          <button
+            className={`btn ${roundsToday >= 3 ? 'btn-white' : 'btn-primary'} btn-big`}
+            onClick={() => go({ name: 'round', island })}
+          >
+            <Icon name="replay" />
+            Nog een ronde
           </button>
         </div>
       </div>
