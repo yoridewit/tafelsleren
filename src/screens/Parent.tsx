@@ -10,6 +10,7 @@ import { addDays } from '../logic/dates';
 import { parseSave } from '../logic/storage';
 import { useSave } from '../state/store';
 import { dutchVoices, hasRecordedVoice, onVoicesChanged, say, setPreferredVoice } from '../audio';
+import { previewMusicVolume } from '../music';
 import type { Go } from '../nav';
 
 const STATUS_TEXT = { nieuw: 'Nog niet geoefend', oefenen: 'Aan het oefenen', bijna: 'Bijna', gekend: 'Kent ze uit het hoofd' };
@@ -206,6 +207,25 @@ export function Parent({ go }: { go: Go }) {
               onChange={(e) => dispatch({ type: 'settings', patch: { music: e.target.checked } })}
             />
             Muziek in de menu's (nooit tijdens het oefenen)
+          </label>
+          <label className="toggle">
+            Muziekvolume
+            <input
+              type="range"
+              className="volume-slider"
+              min={0}
+              max={100}
+              value={Math.round(save.settings.musicVolume * 100)}
+              onChange={(e) => {
+                dispatch({ type: 'settings', patch: { musicVolume: Number(e.target.value) / 100 } });
+                previewMusicVolume();
+              }}
+              aria-label="muziekvolume"
+            />
+            <button type="button" className="btn btn-white btn-small" onClick={previewMusicVolume}>
+              <Icon name="speaker" size={20} />
+              Test
+            </button>
           </label>
           <label className="toggle">
             Tijdslimiet per dag

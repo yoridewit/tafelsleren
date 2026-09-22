@@ -7,18 +7,22 @@ import { getCtx } from './audio';
 const TRACKS = ['menu_music', 'menu_music_2', 'menu_music_3', 'menu_music_4', 'menu_music_5'].map(
   (t) => `/audio/${t}.mp3`,
 );
-const VOLUME = 0.3;
-const DUCKED = 0.08;
+const MAX_VOLUME = 0.3;
+const DUCK_RATIO = 0.08 / 0.3;
 const FADE_S = 0.8;
+const PREVIEW_MS = 2500;
 
 let el: HTMLAudioElement | null = null;
 let gain: GainNode | null = null;
 let track = Math.floor(Math.random() * TRACKS.length);
 let enabled = true;
 let wanted = false;
+let userVolume = 1;
 let ducked = false;
+let previewing = false;
 let unlocked = false;
 let pauseTimer: ReturnType<typeof setTimeout> | undefined;
+let previewTimer: ReturnType<typeof setTimeout> | undefined;
 
 function setup(): boolean {
   if (el && gain) return true;
@@ -40,21 +44,26 @@ function setup(): boolean {
   }
 }
 
-function rampTo(target: number) {
+/** Het volume waar we op dit moment naartoe moeten faden: gebruikersvoorkeur, eventueel gedempt. */
+function target(): number {
+  return userVolume * MAX_VOLUME * (ducked ? DUCK_RATIO : 1);
+}
+
+function rampTo(value: number) {
   if (!gain) return;
   const now = getCtx().currentTime;
   gain.gain.cancelScheduledValues(now);
   gain.gain.setValueAtTime(gain.gain.value, now);
-  gain.gain.linearRampToValueAtTime(target, now + FADE_S);
+  gain.gain.linearRampToValueAtTime(value, now + FADE_S);
 }
 
 function apply() {
-  const shouldPlay = enabled && wanted && unlocked && !document.hidden;
+  const shouldPlay = (previewing || (enabled && wanted)) && unlocked && !document.hidden;
   if (shouldPlay) {
     if (!setup() || !el) return;
     clearTimeout(pauseTimer);
     if (el.paused) void el.play().catch(() => {});
-    rampTo(ducked ? DUCKED : VOLUME);
+    rampTo(target());
   } else if (el && !el.paused) {
     rampTo(0);
     clearTimeout(pauseTimer);
@@ -76,10 +85,30 @@ export function setMusicWanted(on: boolean) {
   apply();
 }
 
+/** Volume zoals door de ouder ingesteld, van 0 (stil) tot 1 (volle sterkte). */
+export function setMusicVolume(v: number) {
+  const clamped = Math.min(1, Math.max(0, v));
+  if (userVolume === clamped) return;
+  userVolume = clamped;
+  if (el && !el.paused) rampTo(target());
+}
+
 /** Zachter terwijl het elfje praat. */
 export function duckMusic(on: boolean) {
+  if (ducked === on) return;
   ducked = on;
-  if (el && !el.paused) rampTo(on ? DUCKED : VOLUME);
+  if (el && !el.paused) rampTo(target());
+}
+
+/** Laat even horen hoe hard de muziek staat, ook als muziek uit staat of dit scherm normaal stil is. */
+export function previewMusicVolume() {
+  previewing = true;
+  apply();
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => {
+    previewing = false;
+    apply();
+  }, PREVIEW_MS);
 }
 
 if (typeof window !== 'undefined') {

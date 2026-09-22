@@ -1764,6 +1764,42 @@ h3 {
 .toggle input:checked::after {
   transform: translateX(20px);
 }
+.volume-slider {
+  flex: 1;
+  min-width: 80px;
+  height: 28px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.volume-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+.volume-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--violet-2), var(--violet));
+  border: 2px solid #fff;
+  box-shadow: var(--sh-1);
+}
+.volume-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--violet-2), var(--violet));
+  border: 2px solid #fff;
+  box-shadow: var(--sh-1);
+}
 .voice-row {
   display: flex;
   gap: 10px;

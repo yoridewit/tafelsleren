@@ -84,7 +84,14 @@ describe('reducer', () => {
     let s = reducer(started(), { type: 'unlock', island: 4 });
     expect(s.save!.unlocked).toEqual([0, 4]);
     s = reducer(s, { type: 'settings', patch: { sound: false } });
-    expect(s.save!.settings).toEqual({ sound: false, speech: true, music: true, voice: null, dailyLimitMinutes: null });
+    expect(s.save!.settings).toEqual({
+      sound: false,
+      speech: true,
+      music: true,
+      musicVolume: 1,
+      voice: null,
+      dailyLimitMinutes: null,
+    });
     s = reducer(s, { type: 'discovered', island: 2 });
     s = reducer(s, { type: 'discovered', island: 2 });
     expect(s.save!.discovered).toEqual([2]);
@@ -131,5 +138,12 @@ describe('reducer', () => {
     const r = parseSave({ version: 1 });
     expect(r!.timeByDay).toEqual({});
     expect(r!.settings.dailyLimitMinutes).toBeNull();
+  });
+
+  it('parseSave sanitizes musicVolume', () => {
+    expect(parseSave({ version: 1, settings: { musicVolume: 0.4 } })!.settings.musicVolume).toBe(0.4);
+    expect(parseSave({ version: 1, settings: { musicVolume: 1.5 } })!.settings.musicVolume).toBe(1);
+    expect(parseSave({ version: 1, settings: { musicVolume: -0.2 } })!.settings.musicVolume).toBe(1);
+    expect(parseSave({ version: 1 })!.settings.musicVolume).toBe(1);
   });
 });

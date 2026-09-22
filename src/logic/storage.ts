@@ -9,6 +9,8 @@ export interface Settings {
   sound: boolean;
   speech: boolean;
   music: boolean;
+  /** Volume van de achtergrondmuziek, van 0 (stil) tot 1 (volle sterkte). */
+  musicVolume: number;
   /** voiceURI van de gekozen voorleesstem; null = automatisch de natuurlijkste Nederlandse stem. */
   voice: string | null;
   /** Maximaal aantal minuten per dag dat de app open mag zijn; null = geen limiet. */
@@ -51,7 +53,7 @@ export function emptySave(elfName = ''): SaveData {
     discovered: [],
     unlocked: [0],
     speedRecord: 0,
-    settings: { sound: true, speech: true, music: true, voice: null, dailyLimitMinutes: null },
+    settings: { sound: true, speech: true, music: true, musicVolume: 1, voice: null, dailyLimitMinutes: null },
     createdAt: new Date().toISOString(),
   };
 }
@@ -117,6 +119,10 @@ export function parseSave(raw: unknown): SaveData | null {
       sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
       speech: typeof settings.speech === 'boolean' ? settings.speech : base.settings.speech,
       music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
+      musicVolume:
+        typeof settings.musicVolume === 'number' && settings.musicVolume >= 0 && settings.musicVolume <= 1
+          ? settings.musicVolume
+          : base.settings.musicVolume,
       voice: typeof settings.voice === 'string' ? settings.voice : null,
       dailyLimitMinutes:
         typeof settings.dailyLimitMinutes === 'number' && settings.dailyLimitMinutes > 0 ? settings.dailyLimitMinutes : null,
