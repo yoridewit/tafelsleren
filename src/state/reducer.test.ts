@@ -84,7 +84,7 @@ describe('reducer', () => {
     let s = reducer(started(), { type: 'unlock', island: 4 });
     expect(s.save!.unlocked).toEqual([0, 4]);
     s = reducer(s, { type: 'settings', patch: { sound: false } });
-    expect(s.save!.settings).toEqual({ sound: false, speech: true, music: true, voice: null });
+    expect(s.save!.settings).toEqual({ sound: false, speech: true, music: true, voice: null, dailyLimitMinutes: null });
     s = reducer(s, { type: 'discovered', island: 2 });
     s = reducer(s, { type: 'discovered', island: 2 });
     expect(s.save!.discovered).toEqual([2]);
@@ -96,6 +96,19 @@ describe('reducer', () => {
     expect(s.save).toBeNull();
   });
 
+  it('tick accumulates time per day and clamps huge jumps', () => {
+    let s = reducer(started(), { type: 'tick', today: T, deltaMs: 90_000 });
+    expect(s.save!.timeByDay[T]).toBe(90_000);
+    s = reducer(s, { type: 'tick', today: T, deltaMs: 10_000 });
+    expect(s.save!.timeByDay[T]).toBe(100_000);
+    // een uur "verspringen" (bijv. dichtgeklapte laptop) telt maar voor 5 minuten mee
+    s = reducer(s, { type: 'tick', today: T, deltaMs: 60 * 60_000 });
+    expect(s.save!.timeByDay[T]).toBe(100_000 + 5 * 60_000);
+    // negatieve delta (klok terug) telt niet mee
+    s = reducer(s, { type: 'tick', today: T, deltaMs: -5000 });
+    expect(s.save!.timeByDay[T]).toBe(100_000 + 5 * 60_000);
+  });
+
   it('parseSave rejects other versions and repairs broken facts', () => {
     expect(parseSave({ version: 2 })).toBeNull();
     expect(parseSave('rommel')).toBeNull();
@@ -103,5 +116,20 @@ describe('reducer', () => {
     expect(Object.keys(p!.facts)).toEqual(['2-4']);
     expect(p!.unlocked).toEqual([0, 3]);
     expect(p!.settings.sound).toBe(true);
+  });
+
+  it('parseSave sanitizes timeByDay and dailyLimitMinutes', () => {
+    const p = parseSave({
+      version: 1,
+      timeByDay: { [T]: 120_000, bad: -5, other: 'nope' },
+      settings: { dailyLimitMinutes: 20 },
+    });
+    expect(p!.timeByDay).toEqual({ [T]: 120_000 });
+    expect(p!.settings.dailyLimitMinutes).toBe(20);
+    const q = parseSave({ version: 1, settings: { dailyLimitMinutes: -5 } });
+    expect(q!.settings.dailyLimitMinutes).toBeNull();
+    const r = parseSave({ version: 1 });
+    expect(r!.timeByDay).toEqual({});
+    expect(r!.settings.dailyLimitMinutes).toBeNull();
   });
 });

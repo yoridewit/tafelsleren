@@ -40,10 +40,17 @@ describe('buildRound', () => {
 
   it('no new facts while many are still being learned', () => {
     const facts: Record<string, FactState> = {};
-    for (const k of factsForIsland(1).slice(0, 6)) facts[k] = st(1);
-    const qs = buildRound({ island: 1, facts, unlocked: [0, 1], today: T, rng: seq() });
+    for (const k of factsForIsland(2).slice(0, 6)) facts[k] = st(1);
+    const qs = buildRound({ island: 2, facts, unlocked: [0, 1, 2], today: T, rng: seq() });
     expect(qs.some((q) => q.isNew)).toBe(false);
     expect(qs.length).toBeGreaterThan(0);
+  });
+
+  it('islands 0 and 1 allow more facts in progress before pausing new ones', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(1).slice(0, 6)) facts[k] = st(1);
+    const qs = buildRound({ island: 1, facts, unlocked: [0, 1], today: T, rng: seq() });
+    expect(qs.some((q) => q.isNew)).toBe(true);
   });
 
   it('island questions put the table second', () => {

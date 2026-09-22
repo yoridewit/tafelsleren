@@ -15,10 +15,31 @@ interface Store {
 
 const StoreContext = createContext<Store | null>(null);
 
+const TICK_MS = 20_000;
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, null, () => initialState(loadSave()));
 
   useEffect(() => writeSave(state.save), [state.save]);
+
+  // Telt bij hoelang de app open en zichtbaar is, per dag (voor de ouderlijke tijdslimiet).
+  // Telt niet mee terwijl het tabblad verborgen is, zodat achtergrondtijd niet meetelt.
+  const hasProfile = !!state.save;
+  useEffect(() => {
+    if (!hasProfile) return;
+    let last = Date.now();
+    const flush = () => {
+      const now = Date.now();
+      if (document.visibilityState === 'visible') dispatch({ type: 'tick', today: dayKey(), deltaMs: now - last });
+      last = now;
+    };
+    const id = setInterval(flush, TICK_MS);
+    document.addEventListener('visibilitychange', flush);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', flush);
+    };
+  }, [hasProfile]);
 
   // Bewust tijdens het renderen (niet in een effect): de schermen eronder praten al in hun eigen effect,
   // en die draaien vóór de effecten van deze provider. Alle setters zijn idempotent.

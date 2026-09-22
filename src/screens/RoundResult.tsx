@@ -6,6 +6,7 @@ import { useSave } from '../state/store';
 import { say, sound } from '../audio';
 import { phraseText } from '../data/phrases';
 import { celebrationPhrases } from '../components/Celebration';
+import { timeUpToday } from '../logic/timeLimit';
 import type { Go } from '../nav';
 
 interface Props {
@@ -20,9 +21,10 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
   const { save, today, state } = useSave();
   const roundsToday = save.roundsByDay[today] ?? 0;
   const ratio = correct / total;
+  const timeUp = timeUpToday(save, today);
 
   const titleId = ratio >= 0.9 ? 'res-top' : ratio >= 0.6 ? 'res-goed' : 'res-knap';
-  const extraId = roundsToday >= 3 ? 'res-genoeg' : ratio < 0.6 ? 'res-moeilijk' : null;
+  const extraId = timeUp ? 'res-tijd-op' : roundsToday >= 3 ? 'res-genoeg' : ratio < 0.6 ? 'res-moeilijk' : null;
 
   useEffect(() => {
     sound.coin();
@@ -52,7 +54,9 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
             <span>sterren verdiend</span>
           </div>
         </div>
-        {roundsToday >= 3 ? (
+        {timeUp ? (
+          <p className="big">{phraseText('res-tijd-op')}</p>
+        ) : roundsToday >= 3 ? (
           <p className="big">{phraseText('res-genoeg')}</p>
         ) : ratio < 0.6 ? (
           <p className="big">{phraseText('res-moeilijk')}</p>
@@ -63,10 +67,11 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
             Naar de kaart
           </button>
           <button
-            className={`btn ${roundsToday >= 3 ? 'btn-white' : 'btn-primary'} btn-big`}
+            className={`btn ${roundsToday >= 3 || timeUp ? 'btn-white' : 'btn-primary'} btn-big`}
+            disabled={timeUp}
             onClick={() => go({ name: 'round', island })}
           >
-            <Icon name="replay" />
+            <Icon name={timeUp ? 'lock' : 'replay'} />
             Nog een ronde
           </button>
         </div>

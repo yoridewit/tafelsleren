@@ -325,7 +325,25 @@ h3 {
 }
 .elf-wings {
   transform-origin: 100px 130px;
-  animation: flap 2.6s ease-in-out infinite;
+  animation: flap 2.2s ease-in-out infinite;
+}
+.elf-body {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: elf-breathe 3.6s ease-in-out infinite;
+  filter: drop-shadow(0 6px 8px rgba(43, 34, 80, 0.18));
+}
+.elf-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: elf-blink 5s ease-in-out infinite;
+}
+.elf-pet {
+  display: block;
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: elf-pet-bob 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 4px 6px rgba(43, 34, 80, 0.18));
 }
 .float {
   animation: float 4s ease-in-out infinite;
@@ -335,7 +353,32 @@ h3 {
 }
 @keyframes flap {
   50% {
-    transform: scaleX(0.92);
+    transform: scaleX(0.9) scaleY(0.97);
+  }
+}
+@keyframes elf-breathe {
+  50% {
+    transform: scale(1.018);
+  }
+}
+@keyframes elf-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95%,
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes elf-pet-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(-2deg);
   }
 }
 @keyframes float {
@@ -346,6 +389,28 @@ h3 {
 @keyframes bounce {
   50% {
     transform: translateY(-10px);
+  }
+}
+.wand-sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sparkle-twinkle 1.6s ease-in-out infinite;
+}
+.wand-sparkles.rarity-episch .wand-sparkle {
+  animation-duration: 1.3s;
+}
+.wand-sparkles.rarity-legendarisch .wand-sparkle {
+  animation-duration: 1s;
+}
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
   }
 }
 .elf-stage {
@@ -785,6 +850,18 @@ h3 {
   width: 14px;
   height: 14px;
   border-radius: 4px;
+}
+.cap-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-3);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  margin: 0;
 }
 .island-buttons {
   display: flex;
@@ -1382,7 +1459,7 @@ h3 {
 }
 .shop-item {
   font: inherit;
-  border: 2px solid transparent;
+  border: 2px solid var(--rarity-color, var(--line));
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--sh-1);
@@ -1395,7 +1472,7 @@ h3 {
   color: var(--ink);
   transition:
     transform 0.12s var(--ease),
-    border-color 0.15s;
+    box-shadow 0.15s;
 }
 .shop-item:active {
   transform: scale(0.97);
@@ -1405,8 +1482,13 @@ h3 {
   width: auto;
 }
 .shop-item-on {
-  border-color: var(--violet-2);
-  box-shadow: var(--sh-2);
+  box-shadow: 0 0 0 3px var(--violet-2), var(--sh-2);
+}
+.shop-item.rarity-legendarisch:not(.shop-item-locked) {
+  box-shadow: 0 0 16px -4px var(--rarity-color), var(--sh-1);
+}
+.shop-item-locked {
+  border-color: var(--line);
 }
 .shop-item-locked .elf {
   opacity: 0.35;
@@ -1415,6 +1497,19 @@ h3 {
 .shop-item-name {
   font-weight: 800;
   font-size: 1rem;
+}
+.rarity-tag {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--rarity-color);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.rarity-tag-small {
+  font-size: 0.66rem;
+}
+.shop-item-locked .rarity-tag {
+  color: var(--muted);
 }
 .price {
   display: inline-flex;

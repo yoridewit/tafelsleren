@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
-import { SHOP, SLOTS, itemById, type ItemSlot } from '../data/shop';
+import { rarityInfo, SHOP, SLOTS, itemById, type ItemSlot } from '../data/shop';
 import { ISLANDS } from '../logic/facts';
 import { useSave } from '../state/store';
 import { say, sayOnce, sound } from '../audio';
@@ -40,6 +40,9 @@ export function Shop({ go }: { go: Go }) {
           {item ? (
             <div className="shop-action">
               <h3>{item.name}</h3>
+              <span className="rarity-tag" style={{ ['--rarity-color' as string]: rarityInfo(item.rarity).color }}>
+                {rarityInfo(item.rarity).label}
+              </span>
               {owned ? (
                 wearing ? (
                   <button className="btn btn-white btn-big" onClick={() => dispatch({ type: 'unwear', slot: item.slot })}>
@@ -111,14 +114,17 @@ export function Shop({ go }: { go: Go }) {
               const isOwned = save.owned.includes(i.id);
               const isOpen = save.unlocked.includes(i.island);
               const isWorn = save.wearing[i.slot] === i.id;
+              const rarity = rarityInfo(i.rarity);
               return (
                 <button
                   key={i.id}
-                  className={`shop-item ${picked === i.id ? 'shop-item-on' : ''} ${isOpen || isOwned ? '' : 'shop-item-locked'}`}
+                  className={`shop-item rarity-${i.rarity} ${picked === i.id ? 'shop-item-on' : ''} ${isOpen || isOwned ? '' : 'shop-item-locked'}`}
+                  style={{ ['--rarity-color' as string]: rarity.color }}
                   onClick={() => pick(i.id)}
                 >
                   <Elf wearing={{ [i.slot]: i.id }} size="100%" />
                   <span className="shop-item-name">{i.name}</span>
+                  <span className="rarity-tag rarity-tag-small">{rarity.label}</span>
                   {isOwned ? (
                     <span className="price owned">
                       <Icon name="check" />

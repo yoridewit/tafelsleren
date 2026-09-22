@@ -5,6 +5,7 @@ import { StarChip } from '../components/TopBar';
 import { ISLANDS } from '../logic/facts';
 import { islandProgress, strongFacts } from '../logic/progress';
 import { currentStreak } from '../logic/streak';
+import { timeUpToday } from '../logic/timeLimit';
 import { useSave } from '../state/store';
 import { say, sayOnce, sound } from '../audio';
 import { phraseText } from '../data/phrases';
@@ -21,6 +22,7 @@ export function Home({ go }: { go: Go }) {
   const { save, today, dispatch } = useSave();
   const rounds = save.roundsByDay[today] ?? 0;
   const streak = currentStreak(save.practiceDays, today);
+  const timeUp = timeUpToday(save, today);
   const speedReady = strongFacts(save.facts).length >= 10;
   const current = Math.max(...save.unlocked);
 
@@ -82,13 +84,19 @@ export function Home({ go }: { go: Go }) {
               </span>
               Stickers
             </button>
-            <button className="action wide" onClick={() => go({ name: 'speed' })} disabled={!speedReady}>
+            <button className="action wide" onClick={() => go({ name: 'speed' })} disabled={!speedReady || timeUp}>
               <span className="action-ic violet">
-                <Icon name={speedReady ? 'bolt' : 'lock'} />
+                <Icon name={speedReady && !timeUp ? 'bolt' : 'lock'} />
               </span>
               <span>
                 Snelspel
-                <small>{speedReady ? 'Hoeveel sommen in 1 minuut?' : 'Kan als je 10 sommen goed kent'}</small>
+                <small>
+                  {timeUp
+                    ? 'Tot morgen! Je hebt genoeg gespeeld'
+                    : speedReady
+                      ? 'Hoeveel sommen in 1 minuut?'
+                      : 'Kan als je 10 sommen goed kent'}
+                </small>
               </span>
             </button>
           </div>

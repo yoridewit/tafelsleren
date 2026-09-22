@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { ISLANDS, factKey } from '../logic/facts';
 import { factStatus } from '../logic/leitner';
 import { islandProgress, knownCount } from '../logic/progress';
+import { TIME_LIMIT_OPTIONS } from '../logic/timeLimit';
 import { currentStreak } from '../logic/streak';
 import { addDays } from '../logic/dates';
 import { parseSave } from '../logic/storage';
@@ -206,6 +207,31 @@ export function Parent({ go }: { go: Go }) {
             />
             Muziek in de menu's (nooit tijdens het oefenen)
           </label>
+          <label className="toggle">
+            Tijdslimiet per dag
+            <select
+              className="voice-select"
+              value={save.settings.dailyLimitMinutes ?? ''}
+              onChange={(e) =>
+                dispatch({
+                  type: 'settings',
+                  patch: { dailyLimitMinutes: e.target.value ? Number(e.target.value) : null },
+                })
+              }
+              aria-label="tijdslimiet per dag"
+            >
+              <option value="">Geen limiet</option>
+              {TIME_LIMIT_OPTIONS.map((m) => (
+                <option key={m} value={m}>
+                  {m} minuten
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="muted">
+            Als de tijd op is, stopt de app na de lopende ronde vriendelijk voor die dag. Winkel en stickers blijven
+            gewoon te bekijken; morgen kan er weer geoefend worden.
+          </p>
           {hasRecordedVoice() ? (
             <p className="muted">
               De app gebruikt ingesproken zinnen (natuurlijke AI-stem). De stem hieronder is alleen een reserve voor zinnen

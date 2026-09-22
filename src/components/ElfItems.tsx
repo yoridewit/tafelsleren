@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { Rarity } from '../data/shop';
 
 /* Alle items zijn getekend in het coördinatenstelsel van het elfje (viewBox 0 -30 200 290).
    Hoofd: middelpunt (100,78), straal 40. Nek ~ (100,118). Rechterhand ~ (142,165). */
@@ -15,6 +16,56 @@ const star = (cx: number, cy: number, r: number) => {
 
 const heart = (cx: number, cy: number, s: number) =>
   `M${cx} ${cy + s * 0.9} C${cx - s * 1.6} ${cy - s * 0.1} ${cx - s * 0.7} ${cy - s * 1.2} ${cx} ${cy - s * 0.4} C${cx + s * 0.7} ${cy - s * 1.2} ${cx + s * 1.6} ${cy - s * 0.1} ${cx} ${cy + s * 0.9}Z`;
+
+const snowflake = (cx: number, cy: number, r: number, color = '#fff'): ReactElement => (
+  <g key={`${cx}-${cy}`} stroke={color} strokeWidth={Math.max(1.4, r * 0.22)} strokeLinecap="round">
+    {[0, 60, 120].map((deg) => (
+      <line
+        key={deg}
+        x1={cx - r * Math.cos((deg * Math.PI) / 180)}
+        y1={cy - r * Math.sin((deg * Math.PI) / 180)}
+        x2={cx + r * Math.cos((deg * Math.PI) / 180)}
+        y2={cy + r * Math.sin((deg * Math.PI) / 180)}
+      />
+    ))}
+  </g>
+);
+
+/** Hoeveel en hoe fel de sterretjes rond een toverstaf fonkelen: meer en groter naarmate de staf zeldzamer is. */
+const SPARKLE_COUNT: Record<Rarity, number> = { gewoon: 2, zeldzaam: 3, episch: 5, legendarisch: 8 };
+const SPARKLE_COLORS: Record<Rarity, string[]> = {
+  gewoon: ['#fde047'],
+  zeldzaam: ['#fde047', '#e0f2fe'],
+  episch: ['#fde047', '#e9d5ff', '#fbcfe8'],
+  legendarisch: ['#fde047', '#e9d5ff', '#fbcfe8', '#bae6fd', '#bbf7d0'],
+};
+
+/** Fonkelende sterretjes rond de punt van een toverstaf, getekend vanaf de hand (0,0). */
+export function wandSparkles(rarity: Rarity): ReactElement {
+  const n = SPARKLE_COUNT[rarity];
+  const colors = SPARKLE_COLORS[rarity];
+  return (
+    <g className={`wand-sparkles rarity-${rarity}`}>
+      {rarity === 'legendarisch' && <circle cx="11" cy="-54" r="28" fill="#fff7cc" opacity="0.16" />}
+      {Array.from({ length: n }, (_, i) => {
+        const a = (Math.PI * 2 * i) / n + 0.5;
+        const dist = 18 + (i % 3) * 6;
+        const x = 11 + dist * Math.cos(a);
+        const y = -54 + dist * Math.sin(a) * 0.85;
+        const r = 2.6 + (i % 2) * 1.3 + (rarity === 'legendarisch' ? 1.2 : 0);
+        return (
+          <polygon
+            key={i}
+            className="wand-sparkle"
+            points={star(x, y, r)}
+            fill={colors[i % colors.length]}
+            style={{ animationDelay: `${(i * 0.28).toFixed(2)}s` }}
+          />
+        );
+      })}
+    </g>
+  );
+}
 
 export const BACKGROUNDS: Record<string, ReactElement> = {
   sterrenhemel: (
@@ -77,6 +128,91 @@ export const BACKGROUNDS: Record<string, ReactElement> = {
       <rect x="0" y="210" width="200" height="50" fill="#f9a8d4" />
     </g>
   ),
+  winterbos: (
+    <g>
+      <rect x="0" y="-30" width="200" height="290" rx="28" fill="#e0f2fe" />
+      <rect x="0" y="215" width="200" height="45" fill="#f0f9ff" />
+      {[
+        [30, 210, 1],
+        [170, 215, 0.85],
+        [155, 175, 0.6],
+        [45, 170, 0.75],
+      ].map(([x, y, s], i) => (
+        <g key={i} transform={`translate(${x} ${y}) scale(${s})`}>
+          <rect x="-4" y="-6" width="8" height="16" fill="#78350f" />
+          <path d="M-22 -6 L0 -46 L22 -6Z" fill="#166534" />
+          <path d="M-17 -22 L0 -52 L17 -22Z" fill="#15803d" />
+          <path d="M-12 -36 L0 -58 L12 -36Z" fill="#16a34a" />
+        </g>
+      ))}
+      {[
+        [20, 10],
+        [180, 30],
+        [60, -10],
+        [140, 5],
+        [100, 40],
+      ].map(([x, y]) => snowflake(x, y, 5, '#fff'))}
+    </g>
+  ),
+  onderwaterwereld: (
+    <g>
+      <defs>
+        <linearGradient id="bg-zee" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#0369a1" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="-30" width="200" height="290" rx="28" fill="url(#bg-zee)" />
+      <rect x="0" y="220" width="200" height="40" fill="#fde68a" />
+      {[
+        [30, 220, '#fb7185'],
+        [80, 224, '#f472b6'],
+        [140, 218, '#fb923c'],
+        [170, 226, '#fbbf24'],
+      ].map(([x, y, c], i) => (
+        <g key={i} transform={`translate(${x} ${y})`}>
+          {[0, 1, 2].map((n) => (
+            <path key={n} d={`M${n * 8 - 8} 0 Q${n * 8 - 8} -22 ${n * 8} -14 Q${n * 8 + 8} -22 ${n * 8 + 8} 0Z`} fill={c as string} />
+          ))}
+        </g>
+      ))}
+      {[
+        [24, 30],
+        [170, 60],
+        [50, 100],
+        [150, 130],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="4" fill="#fff" opacity="0.6" />
+      ))}
+    </g>
+  ),
+  wolkenrijk: (
+    <g>
+      <defs>
+        <linearGradient id="bg-wolken" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fde68a" />
+          <stop offset="1" stopColor="#bae6fd" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="-30" width="200" height="290" rx="28" fill="url(#bg-wolken)" />
+      {[
+        [40, 200, 1],
+        [150, 220, 0.8],
+        [90, 170, 0.6],
+      ].map(([x, y, s], i) => (
+        <g key={i} transform={`translate(${x} ${y}) scale(${s})`}>
+          <ellipse cx="0" cy="0" rx="34" ry="16" fill="#fff" />
+          <ellipse cx="-18" cy="-8" rx="18" ry="14" fill="#fff" />
+          <ellipse cx="18" cy="-8" rx="18" ry="14" fill="#fff" />
+        </g>
+      ))}
+      <polygon
+        points="100,60 110,84 136,84 114,98 122,122 100,108 78,122 86,98 64,84 90,84"
+        fill="#fde047"
+        opacity="0.9"
+      />
+    </g>
+  ),
 };
 
 export const PETS: Record<string, ReactElement> = {
@@ -130,6 +266,34 @@ export const PETS: Record<string, ReactElement> = {
       <path d="M-5 3 Q0 7 5 3" stroke="#166534" strokeWidth="2" fill="none" />
     </g>
   ),
+  vosje: (
+    <g transform="translate(34 216)">
+      <path d="M-16 -6 L-22 -22 L-8 -10Z M16 -6 L22 -22 L8 -10Z" fill="#f97316" />
+      <path d="M-16 -6 L-19 -16 L-11 -9Z M16 -6 L19 -16 L11 -9Z" fill="#fde68a" />
+      <ellipse cx="0" cy="4" rx="19" ry="16" fill="#f97316" />
+      <ellipse cx="0" cy="14" rx="10" ry="8" fill="#fff7ed" />
+      <circle cx="-7" cy="-1" r="3" fill="#1f2937" />
+      <circle cx="7" cy="-1" r="3" fill="#1f2937" />
+      <polygon points="-3,7 3,7 0,12" fill="#1f2937" />
+      <path d="M16 10 Q34 8 30 -8 Q28 4 16 10Z" fill="#f97316" />
+      <ellipse cx="27" cy="0" rx="5" ry="9" fill="#fff7ed" transform="rotate(30 27 0)" />
+    </g>
+  ),
+  zeepaardje: (
+    <g transform="translate(34 214)">
+      <path
+        d="M0 -20 C14 -20 16 -6 8 2 C18 4 18 18 6 22 C10 26 4 30 -2 26 C-10 20 -8 8 -2 6 C-10 2 -12 -12 0 -20Z"
+        fill="#fb923c"
+        stroke="#c2410c"
+        strokeWidth="2"
+      />
+      <path d="M4 -14 L14 -14 L8 -8Z" fill="#fdba74" />
+      <circle cx="4" cy="-14" r="2.6" fill="#1f2937" />
+      {[-4, 2, 8].map((y) => (
+        <path key={y} d={`M-6 ${y} Q-12 ${y + 2} -6 ${y + 5}`} stroke="#c2410c" strokeWidth="1.5" fill="none" />
+      ))}
+    </g>
+  ),
   eenhoorn: (
     <g transform="translate(36 214)">
       <ellipse cx="4" cy="22" rx="22" ry="14" fill="#fff" stroke="#e9d5ff" strokeWidth="2" />
@@ -177,6 +341,30 @@ export const WINGS: Record<string, ReactElement> = {
       ))}
     </g>
   ),
+  libellevleugels: (
+    <g fill="#bae6fd" stroke="#0ea5e9" strokeWidth="1.5" opacity="0.85">
+      <ellipse cx="52" cy="105" rx="40" ry="16" transform="rotate(-18 52 105)" />
+      <ellipse cx="58" cy="140" rx="34" ry="13" transform="rotate(-10 58 140)" />
+      <ellipse cx="148" cy="105" rx="40" ry="16" transform="rotate(18 148 105)" />
+      <ellipse cx="142" cy="140" rx="34" ry="13" transform="rotate(10 142 140)" />
+      <g stroke="#0369a1" strokeWidth="1" opacity="0.6">
+        <line x1="20" y1="105" x2="84" y2="105" />
+        <line x1="180" y1="105" x2="116" y2="105" />
+      </g>
+    </g>
+  ),
+  nachtvlindervleugels: (
+    <g stroke="#1e1b4b" strokeWidth="2">
+      <path d="M96 128 C30 70 4 118 20 158 C36 190 78 168 96 144Z" fill="#4c1d95" />
+      <path d="M96 144 C56 158 30 206 62 214 C84 218 96 184 96 158Z" fill="#6d28d9" />
+      <path d="M104 128 C170 70 196 118 180 158 C164 190 122 168 104 144Z" fill="#4c1d95" />
+      <path d="M104 144 C144 158 170 206 138 214 C116 218 104 184 104 158Z" fill="#6d28d9" />
+      <circle cx="46" cy="128" r="10" fill="#fde68a" stroke="#d97706" />
+      <circle cx="154" cy="128" r="10" fill="#fde68a" stroke="#d97706" />
+      <circle cx="46" cy="128" r="4" fill="#1e1b4b" />
+      <circle cx="154" cy="128" r="4" fill="#1e1b4b" />
+    </g>
+  ),
   regenboogvleugels: (
     <g opacity="0.95">
       {['#f87171', '#facc15', '#4ade80', '#60a5fa', '#c084fc'].map((c, i) => (
@@ -222,6 +410,37 @@ export const NECK: Record<string, ReactElement> = {
       <circle cx="100" cy="126" r="5" fill="#fbcfe8" />
     </g>
   ),
+  zonnebloemketting: (
+    <g>
+      <path d="M78 112 Q100 128 122 112" stroke="#16a34a" strokeWidth="3" fill="none" />
+      <g transform="translate(100 132)">
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((r) => (
+          <ellipse key={r} rx="6" ry="3.4" fill="#fde047" transform={`rotate(${r})`} />
+        ))}
+        <circle r="5.5" fill="#b45309" />
+      </g>
+    </g>
+  ),
+  wintersjaal: (
+    <g>
+      <rect x="74" y="108" width="52" height="18" rx="9" fill="#e0f2fe" stroke="#7dd3fc" strokeWidth="2" />
+      {[80, 92, 104, 116].map((x) => (
+        <circle key={x} cx={x} cy="126" r="3" fill="#fff" />
+      ))}
+      <rect
+        x="104"
+        y="118"
+        width="14"
+        height="38"
+        rx="6"
+        fill="#bae6fd"
+        stroke="#7dd3fc"
+        strokeWidth="2"
+        transform="rotate(-6 111 118)"
+      />
+      <circle cx="111" cy="156" r="6" fill="#fff" />
+    </g>
+  ),
   regenboogsjaal: (
     <g>
       {['#f87171', '#facc15', '#4ade80', '#60a5fa'].map((c, i) => (
@@ -253,6 +472,29 @@ export const HATS: Record<string, ReactElement> = {
       <polygon points="76,44 124,44 108,-8" fill="#38bdf8" />
       <path d="M81 36 L119 36 M88 22 L114 22 M95 8 L111 8" stroke="#facc15" strokeWidth="5" />
       <circle cx="108" cy="-10" r="8" fill="#f472b6" />
+    </g>
+  ),
+  paddenstoelhoedje: (
+    <g transform="translate(100 30)">
+      <path d="M-34 10 Q0 -34 34 10 Q0 22 -34 10Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="-14" cy="-2" r="5" fill="#fff" />
+      <circle cx="10" cy="-10" r="6" fill="#fff" />
+      <circle cx="20" cy="2" r="4" fill="#fff" />
+      <rect x="-10" y="8" width="20" height="10" rx="4" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5" />
+    </g>
+  ),
+  vlindertooi: (
+    <g>
+      <path d="M62 58 Q100 26 138 58" stroke="#7c3aed" strokeWidth="4" fill="none" />
+      <g transform="translate(84 34) rotate(-15)">
+        <path d="M0 0 C-14 -14 -22 -4 -14 6 C-8 12 -2 6 0 0Z" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" />
+        <path d="M0 0 C-10 10 -16 20 -6 22 C0 22 2 10 0 0Z" fill="#c084fc" stroke="#7c3aed" strokeWidth="1.5" />
+      </g>
+      <g transform="translate(116 34) rotate(15) scale(-1 1)">
+        <path d="M0 0 C-14 -14 -22 -4 -14 6 C-8 12 -2 6 0 0Z" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" />
+        <path d="M0 0 C-10 10 -16 20 -6 22 C0 22 2 10 0 0Z" fill="#c084fc" stroke="#7c3aed" strokeWidth="1.5" />
+      </g>
+      <circle cx="100" cy="30" r="3" fill="#7c3aed" />
     </g>
   ),
   bloemenkrans: (
@@ -287,6 +529,15 @@ export const HATS: Record<string, ReactElement> = {
       <circle cx="118" cy="38" r="3.5" fill="#22c55e" />
     </g>
   ),
+  sneeuwvlokkroon: (
+    <g>
+      <path d="M68 48 L66 16 L84 30 L100 4 L116 30 L134 16 L132 48Z" fill="#bfe9ff" stroke="#38bdf8" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="100" cy="8" r="4" fill="#fff" />
+      {snowflake(84, 24, 7, '#fff')}
+      {snowflake(116, 24, 7, '#fff')}
+      {snowflake(100, 40, 6, '#e0f2fe')}
+    </g>
+  ),
   diadeem: (
     <g>
       <path d="M64 58 Q100 28 136 58" stroke="#facc15" strokeWidth="5" fill="none" />
@@ -305,6 +556,17 @@ export const WANDS: Record<string, ReactElement> = {
       <polygon points={star(11, -52, 15)} fill="#fde047" stroke="#d97706" strokeWidth="2" />
     </g>
   ),
+  bloemenstaf: (
+    <g>
+      <line x1="0" y1="8" x2="10" y2="-40" stroke="#65a30d" strokeWidth="5" strokeLinecap="round" />
+      <g transform="translate(11 -48)">
+        {[0, 72, 144, 216, 288].map((r) => (
+          <ellipse key={r} cx="0" cy="-8" rx="6" ry="3.5" fill="#f9a8d4" transform={`rotate(${r})`} />
+        ))}
+        <circle r="4" fill="#fde047" />
+      </g>
+    </g>
+  ),
   hartjesstaf: (
     <g>
       <line x1="0" y1="8" x2="10" y2="-44" stroke="#f9a8d4" strokeWidth="5" strokeLinecap="round" />
@@ -316,6 +578,13 @@ export const WANDS: Record<string, ReactElement> = {
       <line x1="0" y1="8" x2="10" y2="-44" stroke="#c4b5fd" strokeWidth="5" strokeLinecap="round" />
       <circle cx="11" cy="-54" r="14" fill="#fef08a" stroke="#eab308" strokeWidth="2" />
       <circle cx="18" cy="-58" r="12" fill="#fff" opacity="0.95" />
+    </g>
+  ),
+  ijsstaf: (
+    <g>
+      <line x1="0" y1="8" x2="10" y2="-44" stroke="#bae6fd" strokeWidth="5" strokeLinecap="round" />
+      <polygon points="11,-66 20,-48 11,-38 2,-48" fill="#bfe9ff" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" />
+      <polygon points="11,-60 15,-50 11,-44 7,-50" fill="#fff" opacity="0.8" />
     </g>
   ),
   regenboogstaf: (

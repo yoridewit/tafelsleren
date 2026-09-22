@@ -3,6 +3,8 @@ import { TopBar } from '../components/TopBar';
 import { ISLANDS, factKey } from '../logic/facts';
 import { factStatus } from '../logic/leitner';
 import { islandProgress, sharedWithEarlier } from '../logic/progress';
+import { learningCapForIsland } from '../logic/round';
+import { timeUpToday } from '../logic/timeLimit';
 import { useSave } from '../state/store';
 import { useEffect } from 'react';
 import { Icon } from '../components/Icon';
@@ -13,11 +15,13 @@ import type { Go } from '../nav';
 const STATUS_LABEL = { nieuw: 'nieuw', oefenen: 'aan het oefenen', bijna: 'bijna', gekend: 'kan ik' };
 
 export function IslandScreen({ island, go }: { island: number; go: Go }) {
-  const { save } = useSave();
+  const { save, today } = useSave();
   const isl = ISLANDS[island];
   const p = islandProgress(island, save.facts);
   const shared = sharedWithEarlier(island).length;
   const discovered = save.discovered.includes(island);
+  const capReached = p.fresh > 0 && p.practicing >= learningCapForIsland(island);
+  const timeUp = timeUpToday(save, today);
 
   const messageId = p.mastered
     ? 'eiland-klaar'
@@ -84,6 +88,20 @@ export function IslandScreen({ island, go }: { island: number; go: Go }) {
                 </span>
               ))}
             </div>
+            {timeUp ? (
+              <p className="cap-note">
+                <Icon name="lock" size={16} />
+                {phraseText('eiland-tijd-op')}
+              </p>
+            ) : (
+              capReached && (
+                <p className="cap-note">
+                  <Icon name="book" size={16} />
+                  Deze sommen moet je eerst goed onthouden. Zodra dat lukt, komen er weer nieuwe bij &mdash; morgen is
+                  er vast weer ruimte!
+                </p>
+              )
+            )}
           </div>
           <div className="island-buttons">
             <button
@@ -95,9 +113,10 @@ export function IslandScreen({ island, go }: { island: number; go: Go }) {
             </button>
             <button
               className="btn btn-primary btn-huge"
+              disabled={discovered && timeUp}
               onClick={() => go(discovered ? { name: 'round', island } : { name: 'discover', island })}
             >
-              <Icon name="play" size={28} />
+              <Icon name={discovered && timeUp ? 'lock' : 'play'} size={28} />
               Oefenen
             </button>
           </div>

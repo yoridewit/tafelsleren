@@ -17,6 +17,7 @@ export interface AppState {
 export type Action =
   | { type: 'setup'; elfName: string }
   | { type: 'answer'; key: FactKey; correct: boolean; ms: number; today: string }
+  | { type: 'tick'; today: string; deltaMs: number }
   | { type: 'finishRound'; correct: number; today: string }
   | { type: 'speedDone'; score: number; today: string }
   | { type: 'buy'; id: string }
@@ -80,6 +81,13 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'answer': {
       const prev = save.facts[action.key] ?? newFactState();
       return set({ facts: { ...save.facts, [action.key]: applyAnswer(prev, action.correct, action.ms, action.today) } });
+    }
+    case 'tick': {
+      // Geklemd tegen bijv. een dichtgeklapte laptop of systeemklok die verspringt.
+      const delta = Math.max(0, Math.min(action.deltaMs, 5 * 60_000));
+      if (delta === 0) return state;
+      const already = save.timeByDay[action.today] ?? 0;
+      return set({ timeByDay: { ...save.timeByDay, [action.today]: already + delta } });
     }
     case 'finishRound': {
       const already = save.roundsByDay[action.today] ?? 0;

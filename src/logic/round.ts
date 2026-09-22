@@ -17,6 +17,18 @@ export interface RoundOptions {
   size?: number;
 }
 
+/**
+ * Hoeveel sommen er tegelijk "in aanleren" (box 1-2) mogen staan voordat een eiland
+ * even geen nieuwe sommen meer introduceert. Tafel 1&10 en tafel 2 hebben ruimere eilanden
+ * (meer sommen resp. makkelijker sommen), dus die krijgen een hogere grens.
+ */
+const DEFAULT_LEARNING_CAP = 6;
+const LEARNING_CAP: Partial<Record<number, number>> = { 0: 9, 1: 9 };
+
+export function learningCapForIsland(island: number): number {
+  return LEARNING_CAP[island] ?? DEFAULT_LEARNING_CAP;
+}
+
 export function shuffle<T>(xs: T[], rng: () => number = Math.random): T[] {
   const a = [...xs];
   for (let i = a.length - 1; i > 0; i--) {
@@ -35,7 +47,8 @@ export function buildRound({ island, facts, unlocked, today, rng = Math.random, 
   const islandFacts = factsForIsland(island);
   const learning = islandFacts.filter((k) => facts[k] && facts[k].box >= 1 && facts[k].box <= 2).length;
   const practicedAny = Object.values(facts).some((s) => s.box > 0);
-  const maxNew = learning >= 6 ? 0 : learning >= 4 ? 1 : practicedAny ? 3 : 4;
+  const cap = learningCapForIsland(island);
+  const maxNew = learning >= cap ? 0 : learning >= cap - 2 ? 1 : practicedAny ? 3 : 4;
   const newKeys = introOrderForIsland(island)
     .filter((k) => factStatus(facts[k]) === 'nieuw')
     .slice(0, maxNew);

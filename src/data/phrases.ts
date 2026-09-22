@@ -68,6 +68,7 @@ Object.assign(LINES, {
   'eiland-klaar': 'Deze tafel ken je! Blijf af en toe oefenen, dan vergeet je hem niet.',
   'eiland-oefen': 'Elke dag een beetje oefenen, en dan zit het zó in je hoofd, echt waar!',
   'eiland-ontdek': 'Laten we eerst samen ontdekken hoe deze tafel werkt!',
+  'eiland-tijd-op': 'Je hebt vandaag genoeg gespeeld. Morgen kun je weer verder oefenen!',
 
   // ronde
   stoppen: 'Wil je stoppen met deze ronde?',
@@ -78,6 +79,7 @@ Object.assign(LINES, {
   'res-knap': `Knap geoefend, ${CHILD_NAME}!`,
   'res-moeilijk': 'Moeilijke sommen komen vaker terug. Zo leer je ze vanzelf!',
   'res-genoeg': 'Je hebt vandaag al heel wat rondes gedaan. Wat knap! Je hersenen onthouden het beste als je morgen weer even oefent.',
+  'res-tijd-op': 'Je speeltijd voor vandaag zit erop. Wat heb je goed geoefend! Morgen mag je weer verder.',
 
   // winkel en album
   'winkel-welkom': 'Welkom in de winkel! Tik op iets om het te passen.',

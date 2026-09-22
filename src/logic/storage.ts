@@ -11,6 +11,8 @@ export interface Settings {
   music: boolean;
   /** voiceURI van de gekozen voorleesstem; null = automatisch de natuurlijkste Nederlandse stem. */
   voice: string | null;
+  /** Maximaal aantal minuten per dag dat de app open mag zijn; null = geen limiet. */
+  dailyLimitMinutes: number | null;
 }
 
 export interface SaveData {
@@ -23,6 +25,8 @@ export interface SaveData {
   stickers: string[];
   practiceDays: string[];
   roundsByDay: Record<string, number>;
+  /** Milliseconden dat de app open en zichtbaar was, per dag (voor de ouderlijke tijdslimiet). */
+  timeByDay: Record<string, number>;
   roundsDone: number;
   discovered: number[];
   unlocked: number[];
@@ -42,11 +46,12 @@ export function emptySave(elfName = ''): SaveData {
     stickers: [],
     practiceDays: [],
     roundsByDay: {},
+    timeByDay: {},
     roundsDone: 0,
     discovered: [],
     unlocked: [0],
     speedRecord: 0,
-    settings: { sound: true, speech: true, music: true, voice: null },
+    settings: { sound: true, speech: true, music: true, voice: null, dailyLimitMinutes: null },
     createdAt: new Date().toISOString(),
   };
 }
@@ -88,6 +93,9 @@ export function parseSave(raw: unknown): SaveData | null {
   const roundsByDay: Record<string, number> = {};
   if (isObj(raw.roundsByDay))
     for (const [d, n] of Object.entries(raw.roundsByDay)) if (typeof n === 'number') roundsByDay[d] = n;
+  const timeByDay: Record<string, number> = {};
+  if (isObj(raw.timeByDay))
+    for (const [d, n] of Object.entries(raw.timeByDay)) if (typeof n === 'number' && n >= 0) timeByDay[d] = n;
   const settings = isObj(raw.settings) ? raw.settings : {};
   const unlocked = numArr(raw.unlocked);
   return {
@@ -100,6 +108,7 @@ export function parseSave(raw: unknown): SaveData | null {
     stickers: strArr(raw.stickers),
     practiceDays: strArr(raw.practiceDays),
     roundsByDay,
+    timeByDay,
     roundsDone: num(raw.roundsDone, 0),
     discovered: numArr(raw.discovered),
     unlocked: unlocked.includes(0) ? unlocked : [0, ...unlocked],
@@ -109,6 +118,8 @@ export function parseSave(raw: unknown): SaveData | null {
       speech: typeof settings.speech === 'boolean' ? settings.speech : base.settings.speech,
       music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
       voice: typeof settings.voice === 'string' ? settings.voice : null,
+      dailyLimitMinutes:
+        typeof settings.dailyLimitMinutes === 'number' && settings.dailyLimitMinutes > 0 ? settings.dailyLimitMinutes : null,
     },
     createdAt: str(raw.createdAt, base.createdAt),
   };
