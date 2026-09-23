@@ -56,7 +56,10 @@ Pure beslisfunctie `decide(local, remote)`, in deze volgorde:
 3. Local ontbreekt of local is pristine terwijl remote dat niet is: `restore` (remote overnemen).
 4. Remote is pristine terwijl local dat niet is: `push`.
 5. Beide zijn pristine: `none`.
-6. Beide hebben voortgang: de nieuwste `updatedAt` wint. Gelijk: `none`. Remote nieuwer: `restore` en de lokale versie wordt eerst bewaard onder `tafels-elfje-v1-replaced-<iso>` (maximaal de laatste 2 blijven bestaan).
+6. Beide hebben voortgang:
+   - Verschillende `createdAt` (een opnieuw aangemaakt profiel, dus een andere lijn; import en restore behouden `createdAt`): tijdstempels tellen niet mee. De save met de meeste voortgang wint: eerst `roundsDone`, dan het totaal aantal `seen` over alle sommen, en bij nog steeds gelijk de nieuwste `updatedAt` (gelijk: `none`). Dit dekt het incident waarbij een gewist apparaat een nieuw profiel kreeg, waarop de tijdteller `updatedAt` steeds verder zet.
+   - Dezelfde `createdAt`: de nieuwste `updatedAt` wint. Gelijk: `none`.
+   - Wint remote: `restore`, en de lokale versie wordt eerst bewaard onder `tafels-elfje-v1-replaced-<iso>` (maximaal de laatste 2 blijven bestaan). Wint local: `push`, en een remote met voortgang wordt eerst op dezelfde manier lokaal bewaard (replaced-sleutel), zodat de verliezer nooit spoorloos verdwijnt.
 
 Remote data gaat altijd eerst door `parseSave`. Geeft dat `null`, dan wordt remote genegeerd en lokaal niet overschreven; de status toont een fout.
 
@@ -92,7 +95,7 @@ Firestore zet schrijfacties offline in een wachtrij en laat de belofte openstaan
 
 ## Tests
 
-- Unit tests op `decide` voor alle zes regels, inclusief pristine-gevallen en gelijke tijdstempels.
+- Unit tests op `decide` voor alle zes regels, inclusief pristine-gevallen, gelijke tijdstempels en de lijn-regel (verschillende en gelijke `createdAt`).
 - Orkestratie met een fake `CloudStore`: eerst pull en dan pas push, throttle, opnieuw proberen na een fout, `restore` zonder terug-push, en verwijderen bij reset.
 - `parseSave` voor `updatedAt` en `loadSave` voor het corrupt-vangnet met een fake storage.
 - Reducer-wrapper: stempelt bij wijziging, niet bij `restore`, niet bij een ongewijzigde save.

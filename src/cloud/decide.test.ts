@@ -5,8 +5,20 @@ import { newFactState } from '../logic/leitner';
 
 const older = '2026-09-01T10:00:00.000Z';
 const newer = '2026-09-10T10:00:00.000Z';
-const played = (updatedAt: string): SaveData => ({ ...emptySave('Pip'), roundsDone: 1, stars: 5, updatedAt });
-const pristine = (updatedAt: string): SaveData => ({ ...emptySave('Pip'), updatedAt });
+const lineageA = '2026-08-01T10:00:00.000Z';
+const lineageB = '2026-09-05T10:00:00.000Z';
+const played = (updatedAt: string, createdAt = lineageA, roundsDone = 1): SaveData => ({
+  ...emptySave('Pip'),
+  roundsDone,
+  stars: 5,
+  createdAt,
+  updatedAt,
+});
+const pristine = (updatedAt: string, createdAt = lineageA): SaveData => ({ ...emptySave('Pip'), createdAt, updatedAt });
+const withSeen = (save: SaveData, seen: number): SaveData => ({
+  ...save,
+  facts: { '2-3': { ...newFactState(), seen } },
+});
 
 describe('isPristine', () => {
   it('is waar voor een net aangemaakt profiel', () => {
@@ -54,5 +66,40 @@ describe('decide', () => {
 
   it('doet niets bij gelijke tijdstempels', () => {
     expect(decide(played(newer), played(newer))).toBe('none');
+  });
+
+  describe('verschillende createdAt (opnieuw aangemaakt profiel)', () => {
+    it('laat de save met de meeste voortgang winnen, ook als local nieuwer is', () => {
+      const local = played(newer, lineageB, 1);
+      const remote = played(older, lineageA, 40);
+      expect(decide(local, remote)).toBe('restore');
+    });
+
+    it('pusht als local meer voortgang heeft, ook als local ouder is', () => {
+      const local = played(older, lineageB, 40);
+      const remote = played(newer, lineageA, 1);
+      expect(decide(local, remote)).toBe('push');
+    });
+
+    it('vergelijkt bij gelijke rondes het totaal aantal geziene sommen', () => {
+      const local = withSeen(played(newer, lineageB, 3), 5);
+      const remote = withSeen(played(older, lineageA, 3), 50);
+      expect(decide(local, remote)).toBe('restore');
+      expect(decide(withSeen(played(older, lineageB, 3), 50), withSeen(played(newer, lineageA, 3), 5))).toBe('push');
+    });
+
+    it('laat bij gelijke voortgang de nieuwste winnen', () => {
+      expect(decide(played(older, lineageB), played(newer, lineageA))).toBe('restore');
+      expect(decide(played(newer, lineageB), played(older, lineageA))).toBe('push');
+    });
+
+    it('doet niets bij gelijke voortgang en gelijke tijdstempels', () => {
+      expect(decide(played(newer, lineageB), played(newer, lineageA))).toBe('none');
+    });
+  });
+
+  it('gebruikt bij dezelfde createdAt de nieuwste updatedAt, ook als die minder voortgang heeft', () => {
+    expect(decide(played(newer, lineageA, 1), played(older, lineageA, 40))).toBe('push');
+    expect(decide(played(older, lineageA, 40), played(newer, lineageA, 1))).toBe('restore');
   });
 });

@@ -147,6 +147,8 @@ export class SyncEngine {
 
     this.ready = true;
     if (action === 'push') {
+      // De verliezende remote lokaal bewaren, net als een verliezende local bij 'restore'.
+      if (remote && !isPristine(remote)) this.deps.keepReplaced(remote);
       await this.pushNow();
       return 'pushed';
     }

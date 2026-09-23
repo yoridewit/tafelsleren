@@ -12,6 +12,10 @@ export function isPristine(save: SaveData): boolean {
   );
 }
 
+function totalSeen(save: SaveData): number {
+  return Object.values(save.facts).reduce((sum, f) => sum + f.seen, 0);
+}
+
 /** Bepaalt wat er met lokaal en remote moet gebeuren; `remote` is al door `parseSave` gehaald. */
 export function decide(local: SaveData | null, remote: SaveData | null): SyncAction {
   if (!remote) return local ? 'push' : 'none';
@@ -21,6 +25,13 @@ export function decide(local: SaveData | null, remote: SaveData | null): SyncAct
   if (localEmpty && remoteEmpty) return 'none';
   if (localEmpty) return 'restore';
   if (remoteEmpty) return 'push';
+  // Ander createdAt = opnieuw aangemaakt profiel (andere lijn): tijdstempels zeggen dan niets, voortgang wel.
+  if (local.createdAt !== remote.createdAt) {
+    if (local.roundsDone !== remote.roundsDone) return local.roundsDone > remote.roundsDone ? 'push' : 'restore';
+    const ls = totalSeen(local);
+    const rs = totalSeen(remote);
+    if (ls !== rs) return ls > rs ? 'push' : 'restore';
+  }
   const l = Date.parse(local.updatedAt);
   const r = Date.parse(remote.updatedAt);
   if (l === r) return 'none';

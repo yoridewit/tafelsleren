@@ -4,8 +4,16 @@ import { emptySave, type SaveData } from '../logic/storage';
 
 const older = '2026-09-01T10:00:00.000Z';
 const newer = '2026-09-10T10:00:00.000Z';
-const played = (updatedAt: string): SaveData => ({ ...emptySave('Pip'), roundsDone: 1, stars: 5, updatedAt });
-const pristine = (updatedAt: string): SaveData => ({ ...emptySave('Pip'), updatedAt });
+const lineageA = '2026-08-01T10:00:00.000Z';
+const lineageB = '2026-09-05T10:00:00.000Z';
+const played = (updatedAt: string, createdAt = lineageA, roundsDone = 1): SaveData => ({
+  ...emptySave('Pip'),
+  roundsDone,
+  stars: 5,
+  createdAt,
+  updatedAt,
+});
+const pristine = (updatedAt: string, createdAt = lineageA): SaveData => ({ ...emptySave('Pip'), createdAt, updatedAt });
 
 function setup(local: SaveData | null, remote: SaveData | null) {
   const h = {
@@ -98,10 +106,46 @@ describe('SyncEngine.start', () => {
     expect(store.push).toHaveBeenCalledWith(local);
   });
 
+  it('gewist apparaat, kind speelde, ouder logt in: herstelt de echte voortgang en bewaart de lokale', async () => {
+    const local = played(newer, lineageB, 1);
+    const remote = played(older, lineageA, 40);
+    const { h, store, engine } = setup(local, remote);
+    expect(await engine.start()).toBe('restored');
+    expect(h.replaced).toEqual([local]);
+    expect(h.restored).toEqual([remote]);
+    expect(store.push).not.toHaveBeenCalled();
+  });
+
+  it('pusht de lokale versie als die meer voortgang heeft en bewaart de remote als back-up', async () => {
+    const local = played(older, lineageB, 40);
+    const remote = played(newer, lineageA, 1);
+    const { h, store, engine } = setup(local, remote);
+    expect(await engine.start()).toBe('pushed');
+    expect(h.replaced).toEqual([remote]);
+    expect(store.push).toHaveBeenCalledWith(local);
+  });
+
+  it('bewaart een lege remote niet als back-up bij een push', async () => {
+    const { h, engine } = setup(played(older), pristine(newer));
+    expect(await engine.start()).toBe('pushed');
+    expect(h.replaced).toHaveLength(0);
+  });
+
   it('doet niets bij gelijke tijdstempels', async () => {
     const { store, engine } = setup(played(newer), played(newer));
     expect(await engine.start()).toBe('none');
     expect(store.push).not.toHaveBeenCalled();
+  });
+
+  it('stop en daarna start haalt opnieuw op en beslist opnieuw (ander account)', async () => {
+    const { h, store, engine } = setup(null, played(newer));
+    expect(await engine.start()).toBe('restored');
+    expect(store.pull).toHaveBeenCalledTimes(1);
+    engine.stop();
+    h.remote = played(older, lineageB, 9);
+    expect(await engine.start()).toBe('restored');
+    expect(store.pull).toHaveBeenCalledTimes(2);
+    expect(h.restored[1].roundsDone).toBe(9);
   });
 
   it('pusht niet voordat de eerste pull klaar is', async () => {
