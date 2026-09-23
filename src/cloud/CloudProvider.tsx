@@ -44,16 +44,40 @@ export function CloudProvider({ children }: { children: ReactNode }) {
     if (!cloudConfigured) return;
     let unsubscribe: (() => void) | undefined;
     let cancelled = false;
-    auth
-      .onAuthChange(setSignedIn)
-      .then((stop) => {
-        if (cancelled) stop();
-        else unsubscribe = stop;
-      })
-      .catch(() => {});
+    let subscribing = false;
+    const onChange = (isSignedIn: boolean) => {
+      setSignedIn(isSignedIn);
+      // Ook als signedIn al false was (dan draait het start/stop-effect niet): een eerdere foutstatus opruimen.
+      if (!isSignedIn) setStatus({ kind: 'signedOut' });
+    };
+    // Eén abonnement tegelijk: `subscribing` en `unsubscribe` voorkomen dat een nieuwe poging een tweede aanmaakt.
+    const subscribe = () => {
+      if (cancelled || subscribing || unsubscribe) return;
+      subscribing = true;
+      auth
+        .onAuthChange(onChange)
+        .then((stop) => {
+          subscribing = false;
+          if (cancelled) {
+            stop();
+            return;
+          }
+          unsubscribe = stop;
+          window.removeEventListener('online', subscribe);
+        })
+        .catch(() => {
+          subscribing = false;
+          if (!cancelled) setStatus({ kind: navigator.onLine ? 'error' : 'offline' });
+        });
+    };
+    subscribe();
+    // Mislukt het abonneren (bijv. SDK niet te laden zonder internet), dan opnieuw proberen zodra we online komen.
+    window.addEventListener('online', subscribe);
     return () => {
       cancelled = true;
+      window.removeEventListener('online', subscribe);
       unsubscribe?.();
+      unsubscribe = undefined;
     };
   }, []);
 
@@ -95,11 +119,14 @@ export function CloudProvider({ children }: { children: ReactNode }) {
       status,
       async signIn(email, password) {
         await auth.signIn(email, password);
+        // De luisteraar kan ontbreken (abonneren mislukt): signedIn moet dan toch kloppen.
+        setSignedIn(true);
         return engine.start();
       },
       async signOut() {
-        engine.stop();
+        // Pas na een geslaagde uitlog stopt het start/stop-effect de engine; bij een fout blijft alles zoals het was.
         await auth.signOut();
+        setSignedIn(false);
       },
       async removeRemote() {
         if (signedIn) await engine.removeRemote();
