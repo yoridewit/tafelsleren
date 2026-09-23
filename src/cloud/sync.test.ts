@@ -224,6 +224,75 @@ describe('SyncEngine pushen', () => {
   });
 });
 
+describe('SyncEngine stop tijdens lopend werk', () => {
+  it('een verlopen retry-timer start de engine niet opnieuw na stop', async () => {
+    const { h, store, engine } = setup(null, played(newer));
+    h.failPull = true;
+    await engine.start();
+    await engine.flush();
+    expect(store.pull).toHaveBeenCalledTimes(2);
+    engine.stop();
+    const statusCount = h.statuses.length;
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(store.pull).toHaveBeenCalledTimes(2);
+    expect(h.statuses).toHaveLength(statusCount);
+  });
+
+  it('een push die loopt tijdens stop schrijft geen status of lastSynced meer', async () => {
+    const local = played(older);
+    const { h, store, engine } = setup(local, null);
+    let release!: () => void;
+    store.push.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          release = () => resolve();
+        }),
+    );
+    const first = engine.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.push).toHaveBeenCalledTimes(1);
+    engine.stop();
+    const statusCount = h.statuses.length;
+    release();
+    await first;
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.statuses).toHaveLength(statusCount);
+
+    // De remote is nog leeg, en lastSynced is niet vervuild: de nieuwe sessie pusht wel.
+    expect(await engine.start()).toBe('pushed');
+    expect(store.push).toHaveBeenCalledTimes(2);
+    expect(store.push).toHaveBeenLastCalledWith(local);
+    h.local = { ...local, updatedAt: newer };
+    engine.notifyChanged();
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(store.push).toHaveBeenCalledTimes(3);
+  });
+
+  it('stop en start terwijl de oude push nog loopt: de nieuwe sessie pusht echt', async () => {
+    const local = played(older);
+    const { store, engine } = setup(local, null);
+    let release!: () => void;
+    store.push.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          release = () => resolve();
+        }),
+    );
+    const first = engine.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.push).toHaveBeenCalledTimes(1);
+    engine.stop();
+    const second = engine.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.push).toHaveBeenCalledTimes(1);
+    release();
+    expect(await second).toBe('pushed');
+    await first;
+    expect(store.push).toHaveBeenCalledTimes(2);
+    expect(store.push).toHaveBeenLastCalledWith(local);
+  });
+});
+
 describe('SyncEngine.removeRemote', () => {
   it('verwijdert de cloudkopie', async () => {
     const { h, store, engine } = setup(played(newer), played(newer));

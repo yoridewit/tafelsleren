@@ -41,6 +41,7 @@ export class SyncEngine {
   private lastSynced: string | null = null;
   private lastPushAt = 0;
   private pushing = false;
+  private inFlight: Promise<void> | null = null;
   private pushTimer: ReturnType<typeof setTimeout> | undefined;
   private retryTimer: ReturnType<typeof setTimeout> | undefined;
   private startPromise: Promise<StartOutcome> | null = null;
@@ -112,13 +113,20 @@ export class SyncEngine {
     } catch {
       if (generation !== this.generation) return 'failed';
       this.reportFailure();
+      clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => {
         this.retryTimer = undefined;
-        void this.start();
+        if (generation === this.generation) void this.start();
       }, this.throttleMs);
       return 'failed';
     }
     if (generation !== this.generation) return 'failed';
+
+    // Een push van een vorige sessie kan nog lopen; wacht daarop, anders zou pushNow stil overslaan.
+    if (this.inFlight) {
+      await this.inFlight;
+      if (generation !== this.generation) return 'failed';
+    }
 
     const remote = raw == null ? null : parseSave(raw);
     if (raw != null && !remote) {
@@ -161,18 +169,25 @@ export class SyncEngine {
     const local = this.deps.getLocal();
     if (!local || local.updatedAt === this.lastSynced) return;
     this.pushing = true;
+    const generation = this.generation;
     clearTimeout(this.pushTimer);
     this.pushTimer = undefined;
-    try {
-      await this.deps.store.push(local);
-      this.lastSynced = local.updatedAt;
-      this.deps.onStatus({ kind: 'synced', at: new Date().toISOString() });
-    } catch {
-      this.reportFailure();
-    } finally {
-      this.lastPushAt = Date.now();
-      this.pushing = false;
-    }
-    if (!this.stopped && this.isDirty()) this.schedule();
+    const run = (async () => {
+      try {
+        await this.deps.store.push(local);
+        if (generation !== this.generation) return;
+        this.lastSynced = local.updatedAt;
+        this.deps.onStatus({ kind: 'synced', at: new Date().toISOString() });
+      } catch {
+        if (generation === this.generation) this.reportFailure();
+      } finally {
+        if (generation === this.generation) this.lastPushAt = Date.now();
+        this.pushing = false;
+      }
+    })();
+    this.inFlight = run;
+    await run;
+    if (this.inFlight === run) this.inFlight = null;
+    if (generation === this.generation && !this.stopped && this.isDirty()) this.schedule();
   }
 }
