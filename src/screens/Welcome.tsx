@@ -4,14 +4,46 @@ import { Icon } from '../components/Icon';
 import { useStore } from '../state/store';
 import { say, sound } from '../audio';
 import { CHILD_NAME } from '../data/phrases';
+import { CloudLogin } from '../components/CloudLogin';
+import { MathGate } from '../components/MathGate';
+import { TopBar } from '../components/TopBar';
+import { useCloud } from '../cloud/CloudProvider';
 
 const ELF_NAMES = ['Pip', 'Fleur', 'Lila', 'Sprankel', 'Juul', 'Tinka'];
 
 export function Welcome() {
   const { dispatch } = useStore();
+  const cloud = useCloud();
   const [elf, setElf] = useState('');
+  const [mode, setMode] = useState<'setup' | 'gate' | 'restore'>('setup');
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => say('welkom-1'), []);
+
+  if (mode === 'gate') {
+    return (
+      <div className="screen gate">
+        <TopBar onBack={() => setMode('setup')} title="Voor ouders" />
+        <MathGate onPass={() => setMode('restore')} />
+      </div>
+    );
+  }
+
+  if (mode === 'restore') {
+    return (
+      <div className="screen welcome">
+        <div className="card welcome-card">
+          <h1>Voortgang herstellen</h1>
+          <p className="big">Log in met het e-mailadres van de ouder om de opgeslagen voortgang terug te halen.</p>
+          <CloudLogin onDone={(outcome) => setNotFound(outcome === 'none')} />
+          {notFound && <p className="note">Geen opgeslagen voortgang gevonden voor dit account.</p>}
+          <button className="btn btn-white btn-small" onClick={() => setMode('setup')}>
+            Terug
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen welcome">
@@ -49,6 +81,11 @@ export function Welcome() {
           Beginnen
           <Icon name="play" />
         </button>
+        {cloud.configured && (
+          <button className="btn btn-white btn-small" onClick={() => setMode('gate')}>
+            Ouder? Voortgang herstellen
+          </button>
+        )}
       </div>
     </div>
   );
