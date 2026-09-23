@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reducer, initialState, roundReward, type AppState } from './reducer';
+import { reducer, initialState, roundReward, stampedReducer, type Action, type AppState } from './reducer';
 import { emptySave, parseSave } from '../logic/storage';
 import { factsForIsland } from '../logic/facts';
 
@@ -145,5 +145,39 @@ describe('reducer', () => {
     expect(parseSave({ version: 1, settings: { musicVolume: 1.5 } })!.settings.musicVolume).toBe(1);
     expect(parseSave({ version: 1, settings: { musicVolume: -0.2 } })!.settings.musicVolume).toBe(1);
     expect(parseSave({ version: 1 })!.settings.musicVolume).toBe(1);
+  });
+});
+
+describe('stampedReducer', () => {
+  const NOW = '2026-09-23T10:00:00.000Z';
+  const stamp = (s: AppState, a: Action) => stampedReducer(s, a, () => NOW);
+
+  it('zet updatedAt bij een echte wijziging', () => {
+    const after = stamp(started(), { type: 'answer', key: '2-3', correct: true, ms: 1500, today: T });
+    expect(after.save!.updatedAt).toBe(NOW);
+  });
+
+  it('laat updatedAt staan als er niets verandert', () => {
+    const before = started();
+    const after = stamp(before, { type: 'unlock', island: 0 });
+    expect(after.save!.updatedAt).toBe(before.save!.updatedAt);
+  });
+
+  it('stempelt een back-up die wordt teruggezet (import) als wijziging', () => {
+    const data = { ...emptySave('Lila'), updatedAt: '2026-09-01T00:00:00.000Z' };
+    const after = stamp(started(), { type: 'import', data });
+    expect(after.save!.elfName).toBe('Lila');
+    expect(after.save!.updatedAt).toBe(NOW);
+  });
+
+  it('restore houdt de updatedAt uit de cloud', () => {
+    const data = { ...emptySave('Lila'), updatedAt: '2026-09-01T00:00:00.000Z' };
+    const after = stamp(started(), { type: 'restore', data });
+    expect(after.save!.elfName).toBe('Lila');
+    expect(after.save!.updatedAt).toBe('2026-09-01T00:00:00.000Z');
+  });
+
+  it('reset geeft een lege save zonder te stempelen', () => {
+    expect(stamp(started(), { type: 'reset' }).save).toBeNull();
   });
 });

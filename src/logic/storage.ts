@@ -35,9 +35,12 @@ export interface SaveData {
   speedRecord: number;
   settings: Settings;
   createdAt: string;
+  /** Tijdstip (ISO) van de laatste wijziging; bepaalt bij synchroniseren welke kant nieuwer is. */
+  updatedAt: string;
 }
 
 export function emptySave(elfName = ''): SaveData {
+  const now = new Date().toISOString();
   return {
     version: 1,
     elfName,
@@ -54,7 +57,8 @@ export function emptySave(elfName = ''): SaveData {
     unlocked: [0],
     speedRecord: 0,
     settings: { sound: true, speech: true, music: true, musicVolume: 1, voice: null, dailyLimitMinutes: null },
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
@@ -64,6 +68,8 @@ const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite
 const str = (v: unknown, d: string) => (typeof v === 'string' ? v : d);
 const strArr = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 const numArr = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : []);
+
+const iso = (v: unknown, d: string) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : d);
 
 function parseFact(v: unknown): FactState | null {
   if (!isObj(v)) return null;
@@ -83,6 +89,7 @@ function parseFact(v: unknown): FactState | null {
 export function parseSave(raw: unknown): SaveData | null {
   if (!isObj(raw) || raw.version !== 1) return null;
   const base = emptySave();
+  const createdAt = str(raw.createdAt, base.createdAt);
   const facts: Record<FactKey, FactState> = {};
   if (isObj(raw.facts))
     for (const k of ALL_FACTS) {
@@ -127,7 +134,8 @@ export function parseSave(raw: unknown): SaveData | null {
       dailyLimitMinutes:
         typeof settings.dailyLimitMinutes === 'number' && settings.dailyLimitMinutes > 0 ? settings.dailyLimitMinutes : null,
     },
-    createdAt: str(raw.createdAt, base.createdAt),
+    createdAt,
+    updatedAt: iso(raw.updatedAt, createdAt),
   };
 }
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react';
-import { reducer, initialState, type Action, type AppState } from './reducer';
+import { stampedReducer, initialState, type Action, type AppState } from './reducer';
 import { loadSave, writeSave } from '../logic/storage';
 import { dayKey } from '../logic/dates';
 import { onTalking, setAudioPrefs, setPreferredVoice } from '../audio';
@@ -18,7 +18,7 @@ const StoreContext = createContext<Store | null>(null);
 const TICK_MS = 20_000;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, null, () => initialState(loadSave()));
+  const [state, dispatch] = useReducer(stampedReducer, null, () => initialState(loadSave()));
 
   useEffect(() => writeSave(state.save), [state.save]);
 

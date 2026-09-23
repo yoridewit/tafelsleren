@@ -28,6 +28,7 @@ export type Action =
   | { type: 'settings'; patch: Partial<Settings> }
   | { type: 'rename'; elfName: string }
   | { type: 'import'; data: SaveData }
+  | { type: 'restore'; data: SaveData }
   | { type: 'reset' }
   | { type: 'clearCelebrations' };
 
@@ -70,6 +71,7 @@ function afterPlay(state: AppState, save: SaveData, today: string): AppState {
 export function reducer(state: AppState, action: Action): AppState {
   if (action.type === 'setup') return initialState(emptySave(action.elfName));
   if (action.type === 'import') return initialState(action.data);
+  if (action.type === 'restore') return initialState(action.data);
   if (action.type === 'reset') return initialState(null);
   if (action.type === 'clearCelebrations') return { ...state, newStickers: [], newUnlocks: [] };
 
@@ -135,4 +137,15 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'rename':
       return set({ elfName: action.elfName });
   }
+}
+
+/** Zet `updatedAt` op elke echte wijziging van de save; `restore` houdt het tijdstip uit de cloud. */
+export function stampedReducer(
+  state: AppState,
+  action: Action,
+  now: () => string = () => new Date().toISOString(),
+): AppState {
+  const next = reducer(state, action);
+  if (action.type === 'restore' || !next.save || next.save === state.save) return next;
+  return { ...next, save: { ...next.save, updatedAt: now() } };
 }
