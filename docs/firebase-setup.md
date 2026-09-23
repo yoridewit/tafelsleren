@@ -37,3 +37,15 @@ Elke dag heeft een document `saves/{uid}/snapshots/{YYYY-MM-DD}` met de laatste 
 1. Open het snapshot in de Firestore-console en kopieer de waarde van het veld `json`.
 2. Plak die in een bestand `herstel.json` op het apparaat.
 3. Ouderoverzicht → "Back-up terugzetten" → kies `herstel.json`. De app neemt de voortgang over en uploadt hem daarna als nieuwste stand.
+
+
+## Op één apparaat inloggen
+
+Log alleen in op het apparaat dat Floor gebruikt. Een tweede apparaat dat open blijft staan, zou "nieuwer" lijken, omdat de tijdteller de save steeds bijwerkt.
+
+De app bewaart lokale veiligheidskopieën in localStorage:
+
+- `tafels-elfje-v1-replaced-<tijd>` (de laatste 2): gemaakt als de cloudkopie een lokale versie vervangt, of als de cloudkopie door de lokale versie wordt vervangen.
+- `tafels-elfje-v1-corrupt`: de ruwe tekst van een onbruikbare save.
+
+Je leest ze in de devtools van de browser (Application → Local Storage). Sla de waarde op als `.json`-bestand en zet het terug via Ouderoverzicht → "Back-up terugzetten".

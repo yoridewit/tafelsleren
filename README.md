@@ -53,4 +53,4 @@ De voortgang kan ook in Firebase bewaard worden, zodat een gewist of vervangen a
 
 ## Privacy
 
-Alle voortgang staat alleen in de browser van het apparaat (localStorage). Via het ouderdeel kun je een back-up downloaden en terugzetten.
+Standaard staat alle voortgang alleen in de browser van het apparaat (localStorage). Stelt de ouder cloud-opslag in, dan wordt er ook een kopie bewaard in Firebase (Firestore), onder het eigen account van de ouder. Via het ouderdeel kun je altijd een back-up downloaden en terugzetten.

@@ -325,8 +325,9 @@ export function Parent({ go }: { go: Go }) {
         <section className="panel">
           <h2>Back-up</h2>
           <p className="muted">
-            De voortgang staat alleen op dit apparaat. Wis je de browsergegevens, dan is alles weg. Maak daarom af en toe een
-            back-up (bijvoorbeeld naar iCloud of Google Drive).
+            {cloud.signedIn
+              ? 'De voortgang wordt ook in de cloud bewaard. Een back-upbestand (bijvoorbeeld naar iCloud of Google Drive) is nog steeds een fijne extra zekerheid.'
+              : 'De voortgang staat alleen op dit apparaat. Wis je de browsergegevens, dan is alles weg. Maak daarom af en toe een back-up (bijvoorbeeld naar iCloud of Google Drive).'}
           </p>
           <div className="row">
             <button className="btn btn-primary btn-small" onClick={exportBackup}>

@@ -4,5 +4,6 @@ dev-dist
 *.log
 .vercel
 .env.local
+.env.*.local
 .env
 audio-takes
