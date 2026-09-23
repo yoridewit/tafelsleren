@@ -139,13 +139,33 @@ export function parseSave(raw: unknown): SaveData | null {
   };
 }
 
-export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage): SaveData | null {
+export type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
+
+export const CORRUPT_KEY = `${STORAGE_KEY}-corrupt`;
+const REPLACED_PREFIX = `${STORAGE_KEY}-replaced-`;
+const KEEP_REPLACED = 2;
+
+/** Bewaart onbruikbare opgeslagen tekst zodat hij nooit stilletjes verdwijnt (een eerdere kopie blijft staan). */
+function stashCorrupt(raw: string, storage: Pick<Storage, 'getItem' | 'setItem'>) {
   try {
-    const raw = storage.getItem(STORAGE_KEY);
-    return raw ? parseSave(JSON.parse(raw)) : null;
+    if (storage.getItem(CORRUPT_KEY) === null) storage.setItem(CORRUPT_KEY, raw);
   } catch {
-    return null;
+    // opslag vol of geblokkeerd
   }
+}
+
+export function loadSave(storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage): SaveData | null {
+  let raw: string | null = null;
+  try {
+    raw = storage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = parseSave(JSON.parse(raw));
+    if (parsed) return parsed;
+  } catch {
+    // valt door naar het vangnet hieronder
+  }
+  if (raw) stashCorrupt(raw, storage);
+  return null;
 }
 
 export function writeSave(data: SaveData | null, storage: Pick<Storage, 'setItem' | 'removeItem'> = localStorage) {
@@ -154,5 +174,35 @@ export function writeSave(data: SaveData | null, storage: Pick<Storage, 'setItem
     else storage.removeItem(STORAGE_KEY);
   } catch {
     // opslag vol of geblokkeerd: de app blijft werken in het geheugen
+  }
+}
+
+/** Schrijft een bestaande save; wist alleen bij een overgang van een save naar `null` (expliciete reset). */
+export function persistTransition(
+  prev: SaveData | null,
+  next: SaveData | null,
+  storage: Pick<Storage, 'setItem' | 'removeItem'> = localStorage,
+) {
+  if (next) writeSave(next, storage);
+  else if (prev) writeSave(null, storage);
+}
+
+/** Bewaart een lokale save die door de cloud is vervangen; alleen de laatste 2 blijven bestaan. */
+export function keepReplaced(
+  save: SaveData,
+  storage: KeyValueStorage = localStorage,
+  now: string = new Date().toISOString(),
+) {
+  try {
+    storage.setItem(`${REPLACED_PREFIX}${now}`, JSON.stringify(save));
+    const keys: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i);
+      if (k?.startsWith(REPLACED_PREFIX)) keys.push(k);
+    }
+    keys.sort();
+    for (const k of keys.slice(0, Math.max(0, keys.length - KEEP_REPLACED))) storage.removeItem(k);
+  } catch {
+    // opslag vol of geblokkeerd
   }
 }

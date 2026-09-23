@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useReducer, useRef, type Dispatch, type ReactNode } from 'react';
 import { stampedReducer, initialState, type Action, type AppState } from './reducer';
-import { loadSave, writeSave } from '../logic/storage';
+import { loadSave, persistTransition, type SaveData } from '../logic/storage';
 import { dayKey } from '../logic/dates';
 import { onTalking, setAudioPrefs, setPreferredVoice } from '../audio';
 import { duckMusic, setMusicEnabled, setMusicVolume } from '../music';
@@ -20,7 +20,12 @@ const TICK_MS = 20_000;
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(stampedReducer, null, () => initialState(loadSave()));
 
-  useEffect(() => writeSave(state.save), [state.save]);
+  // Wissen gebeurt alleen bij een echte reset (save -> null), nooit omdat het laden mislukte.
+  const lastSave = useRef<SaveData | null>(null);
+  useEffect(() => {
+    persistTransition(lastSave.current, state.save);
+    lastSave.current = state.save;
+  }, [state.save]);
 
   // Telt bij hoelang de app open en zichtbaar is, per dag (voor de ouderlijke tijdslimiet).
   // Telt niet mee terwijl het tabblad verborgen is, zodat achtergrondtijd niet meetelt.
