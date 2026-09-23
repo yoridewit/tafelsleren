@@ -45,7 +45,7 @@ Log alleen in op het apparaat dat Floor gebruikt. Een tweede apparaat dat open b
 
 De app bewaart lokale veiligheidskopieën in localStorage:
 
-- `tafels-elfje-v1-replaced-<tijd>` (de laatste 2): gemaakt als de cloudkopie een lokale versie vervangt, of als de cloudkopie door de lokale versie wordt vervangen.
+- `tafels-elfje-v1-replaced-<tijd>` (de laatste 2): gemaakt als de cloudkopie een lokale versie met voortgang vervangt, of als de lokale versie een cloudkopie van een ander profiel vervangt (bijvoorbeeld een opnieuw aangemaakt profiel).
 - `tafels-elfje-v1-corrupt`: de ruwe tekst van een onbruikbare save.
 
 Je leest ze in de devtools van de browser (Application → Local Storage). Sla de waarde op als `.json`-bestand en zet het terug via Ouderoverzicht → "Back-up terugzetten".
