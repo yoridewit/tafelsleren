@@ -47,6 +47,10 @@ Andere stem gekozen? Draai `npm run audio -- --force` om alles opnieuw in te spr
 
 Vercel herkent het project als Vite: build `npm run build`, output `dist`. Elke push naar `main` wordt automatisch gedeployed.
 
+## Cloud-opslag (optioneel)
+
+De voortgang kan ook in Firebase bewaard worden, zodat een gewist of vervangen apparaat geen voortgang kost. Zie `docs/firebase-setup.md`.
+
 ## Privacy
 
 Alle voortgang staat alleen in de browser van het apparaat (localStorage). Via het ouderdeel kun je een back-up downloaden en terugzetten.

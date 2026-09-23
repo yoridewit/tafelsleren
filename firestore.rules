@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Alleen de ingelogde eigenaar mag de eigen save en snapshots lezen en schrijven.
+    match /saves/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /snapshots/{day} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
