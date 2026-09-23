@@ -11,12 +11,15 @@ import { parseSave } from '../logic/storage';
 import { useSave } from '../state/store';
 import { dutchVoices, hasRecordedVoice, onVoicesChanged, say, setPreferredVoice } from '../audio';
 import { previewMusicVolume } from '../music';
+import { useCloud } from '../cloud/CloudProvider';
+import { CloudPanel } from './CloudPanel';
 import type { Go } from '../nav';
 
 const STATUS_TEXT = { nieuw: 'Nog niet geoefend', oefenen: 'Aan het oefenen', bijna: 'Bijna', gekend: 'Kent ze uit het hoofd' };
 
 export function Parent({ go }: { go: Go }) {
   const { save, dispatch, today } = useSave();
+  const cloud = useCloud();
   const [elf, setElf] = useState(save.elfName);
   const [msg, setMsg] = useState('');
   const [detail, setDetail] = useState('');
@@ -61,10 +64,17 @@ export function Parent({ go }: { go: Go }) {
     }
   };
 
-  const reset = () => {
-    if (confirm('Weet je zeker dat je ALLE voortgang wilt wissen?') && confirm('Echt zeker? Dit kan niet ongedaan worden (tenzij je een back-up hebt).')) {
-      dispatch({ type: 'reset' });
+  const reset = async () => {
+    const extra = cloud.signedIn ? ' Ook de kopie in de cloud wordt gewist.' : '';
+    if (!confirm(`Weet je zeker dat je ALLE voortgang wilt wissen?${extra}`)) return;
+    if (!confirm('Echt zeker? Dit kan niet ongedaan worden (tenzij je een back-up hebt).')) return;
+    try {
+      await cloud.removeRemote();
+    } catch {
+      setMsg('De kopie in de cloud kon niet gewist worden. Probeer het opnieuw met internet.');
+      return;
     }
+    dispatch({ type: 'reset' });
   };
 
   return (
@@ -309,6 +319,8 @@ export function Parent({ go }: { go: Go }) {
             </button>
           </div>
         </section>
+
+        <CloudPanel />
 
         <section className="panel">
           <h2>Back-up</h2>
