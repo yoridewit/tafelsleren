@@ -81,7 +81,7 @@ export function Welcome() {
           Beginnen
           <Icon name="play" />
         </button>
-        {cloud.configured && (
+        {cloud.configured && !cloud.signedIn && (
           <button className="btn btn-white btn-small" onClick={() => setMode('gate')}>
             Ouder? Voortgang herstellen
           </button>

@@ -119,6 +119,8 @@ export function CloudProvider({ children }: { children: ReactNode }) {
       status,
       async signIn(email, password) {
         await auth.signIn(email, password);
+        // Altijd een verse pull en beslissing voor het account dat net inlogde (ook bij wisselen van account).
+        engine.stop();
         // De luisteraar kan ontbreken (abonneren mislukt): signedIn moet dan toch kloppen.
         setSignedIn(true);
         return engine.start();
