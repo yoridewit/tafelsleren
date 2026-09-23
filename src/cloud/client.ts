@@ -29,6 +29,10 @@ export function getFirebase(): Promise<Firebase> {
       const app = initializeApp(config as { apiKey: string; authDomain: string; projectId: string; appId: string });
       return { app, auth: getAuth(app), db: getFirestore(app) };
     },
-  );
+  ).catch((e) => {
+    // Een mislukte load (bijv. een chunk die niet binnenkomt) mag niet blijven hangen: de volgende aanroep probeert het opnieuw.
+    firebase = null;
+    throw e;
+  });
   return firebase;
 }

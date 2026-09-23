@@ -43,4 +43,29 @@ describe('cloud client', () => {
     });
     expect(cloudConfigured).toBe(true);
   });
+
+  it('probeert het laden opnieuw nadat een SDK-onderdeel één keer is mislukt', async () => {
+    let appCalls = 0;
+    vi.doMock('firebase/app', () => {
+      appCalls += 1;
+      if (appCalls === 1) throw new Error('chunk kon niet laden');
+      return { initializeApp: () => ({}) };
+    });
+    vi.doMock('firebase/auth', () => ({ getAuth: () => ({}) }));
+    vi.doMock('firebase/firestore', () => ({ getFirestore: () => ({}) }));
+    try {
+      const { getFirebase } = await load({
+        VITE_FIREBASE_API_KEY: 'k',
+        VITE_FIREBASE_AUTH_DOMAIN: 'd',
+        VITE_FIREBASE_PROJECT_ID: 'p',
+        VITE_FIREBASE_APP_ID: 'a',
+      });
+      await expect(getFirebase()).rejects.toThrow();
+      await expect(getFirebase()).resolves.toMatchObject({ app: {}, auth: {}, db: {} });
+    } finally {
+      vi.doUnmock('firebase/app');
+      vi.doUnmock('firebase/auth');
+      vi.doUnmock('firebase/firestore');
+    }
+  });
 });
