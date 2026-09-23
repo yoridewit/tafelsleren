@@ -59,7 +59,7 @@ Pure beslisfunctie `decide(local, remote)`, in deze volgorde:
 6. Beide hebben voortgang:
    - Verschillende `createdAt` (een opnieuw aangemaakt profiel, dus een andere lijn; import en restore behouden `createdAt`): tijdstempels tellen niet mee. De save met de meeste voortgang wint: eerst `roundsDone`, dan het totaal aantal `seen` over alle sommen, en bij nog steeds gelijk de nieuwste `updatedAt` (gelijk: `none`). Dit dekt het incident waarbij een gewist apparaat een nieuw profiel kreeg, waarop de tijdteller `updatedAt` steeds verder zet.
    - Dezelfde `createdAt`: de nieuwste `updatedAt` wint. Gelijk: `none`.
-   - Wint remote: `restore`, en de lokale versie wordt eerst bewaard onder `tafels-elfje-v1-replaced-<iso>` (maximaal de laatste 2 blijven bestaan). Wint local: `push`, en een remote met voortgang wordt eerst op dezelfde manier lokaal bewaard (replaced-sleutel), zodat de verliezer nooit spoorloos verdwijnt.
+   - Wint remote: `restore`, en de lokale versie wordt eerst bewaard onder `tafels-elfje-v1-replaced-<iso>` (maximaal de laatste 2 blijven bestaan). Wint local: `push`, en een remote met voortgang wordt alleen eerst op dezelfde manier lokaal bewaard (replaced-sleutel) als het een ander profiel betreft (andere `createdAt`); een oudere remote van dezelfde lijn is gewoon een verouderde kopie en wordt niet bewaard, zodat de twee bewaarplekken niet vollopen met bijna identieke kopieën.
 
 Remote data gaat altijd eerst door `parseSave`. Geeft dat `null`, dan wordt remote genegeerd en lokaal niet overschreven; de status toont een fout.
 

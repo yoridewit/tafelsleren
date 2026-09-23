@@ -125,6 +125,34 @@ describe('SyncEngine.start', () => {
     expect(store.push).toHaveBeenCalledWith(local);
   });
 
+  it('bewaart een oudere remote van dezelfde lijn niet als back-up bij een push', async () => {
+    const local = played(newer);
+    const { h, store, engine } = setup(local, played(older));
+    expect(await engine.start()).toBe('pushed');
+    expect(h.replaced).toHaveLength(0);
+    expect(store.push).toHaveBeenCalledWith(local);
+  });
+
+  it('twee sessies na elkaar met dezelfde lijn voegen geen back-ups toe', async () => {
+    const { h, engine } = setup(played(newer), played(older));
+    expect(await engine.start()).toBe('pushed');
+    engine.stop();
+    h.local = { ...h.local!, updatedAt: '2026-09-11T10:00:00.000Z' };
+    expect(await engine.start()).toBe('pushed');
+    engine.stop();
+    expect(await engine.start()).toBe('none');
+    expect(h.replaced).toHaveLength(0);
+  });
+
+  it('twee sessies na een lijnwissel bewaren de remote hoogstens één keer', async () => {
+    const remote = played(newer, lineageA, 1);
+    const { h, engine } = setup(played(older, lineageB, 40), remote);
+    expect(await engine.start()).toBe('pushed');
+    engine.stop();
+    expect(await engine.start()).toBe('none');
+    expect(h.replaced).toEqual([remote]);
+  });
+
   it('bewaart een lege remote niet als back-up bij een push', async () => {
     const { h, engine } = setup(played(older), pristine(newer));
     expect(await engine.start()).toBe('pushed');
