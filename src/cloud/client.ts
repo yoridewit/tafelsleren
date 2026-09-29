@@ -25,9 +25,11 @@ let firebase: Promise<Firebase> | null = null;
 export function getFirebase(): Promise<Firebase> {
   if (!cloudConfigured) return Promise.reject(new Error('Cloud-opslag is niet ingesteld'));
   firebase ??= Promise.all([import('firebase/app'), import('firebase/auth'), import('firebase/firestore')]).then(
-    ([{ initializeApp }, { getAuth }, { getFirestore }]) => {
+    ([{ initializeApp }, { getAuth }, { initializeFirestore }]) => {
       const app = initializeApp(config as { apiKey: string; authDomain: string; projectId: string; appId: string });
-      return { app, auth: getAuth(app), db: getFirestore(app) };
+      // Long-polling in plaats van streaming: de streaming-verbinding faalt op sommige netwerken en apparaten
+      // (bijv. Safari op een iPad, "unavailable"), en wij schrijven maar één klein document per halve minuut.
+      return { app, auth: getAuth(app), db: initializeFirestore(app, { experimentalForceLongPolling: true }) };
     },
   ).catch((e) => {
     // Een mislukte load (bijv. een chunk die niet binnenkomt) mag niet blijven hangen: de volgende aanroep probeert het opnieuw.

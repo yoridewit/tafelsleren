@@ -52,7 +52,7 @@ describe('cloud client', () => {
       return { initializeApp: () => ({}) };
     });
     vi.doMock('firebase/auth', () => ({ getAuth: () => ({}) }));
-    vi.doMock('firebase/firestore', () => ({ getFirestore: () => ({}) }));
+    vi.doMock('firebase/firestore', () => ({ initializeFirestore: () => ({}) }));
     try {
       const { getFirebase } = await load({
         VITE_FIREBASE_API_KEY: 'k',
@@ -62,6 +62,28 @@ describe('cloud client', () => {
       });
       await expect(getFirebase()).rejects.toThrow();
       await expect(getFirebase()).resolves.toMatchObject({ app: {}, auth: {}, db: {} });
+    } finally {
+      vi.doUnmock('firebase/app');
+      vi.doUnmock('firebase/auth');
+      vi.doUnmock('firebase/firestore');
+    }
+  });
+
+  it('zet Firestore op long-polling, want streaming lukt niet overal (bijv. Safari op een iPad)', async () => {
+    const app = { naam: 'app' };
+    const initializeFirestore = vi.fn(() => ({}));
+    vi.doMock('firebase/app', () => ({ initializeApp: () => app }));
+    vi.doMock('firebase/auth', () => ({ getAuth: () => ({}) }));
+    vi.doMock('firebase/firestore', () => ({ initializeFirestore }));
+    try {
+      const { getFirebase } = await load({
+        VITE_FIREBASE_API_KEY: 'k',
+        VITE_FIREBASE_AUTH_DOMAIN: 'd',
+        VITE_FIREBASE_PROJECT_ID: 'p',
+        VITE_FIREBASE_APP_ID: 'a',
+      });
+      await getFirebase();
+      expect(initializeFirestore).toHaveBeenCalledWith(app, { experimentalForceLongPolling: true });
     } finally {
       vi.doUnmock('firebase/app');
       vi.doUnmock('firebase/auth');
