@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SyncEngine, type SyncStatus } from './sync';
+import { SyncEngine, errorDetail, type SyncStatus } from './sync';
 import { emptySave, type SaveData } from '../logic/storage';
 
 const older = '2026-09-01T10:00:00.000Z';
@@ -21,6 +21,7 @@ function setup(local: SaveData | null, remote: SaveData | null) {
     remote: remote as unknown,
     failPull: false,
     failPush: false,
+    error: new Error('down') as unknown,
     online: true,
     restored: [] as SaveData[],
     replaced: [] as SaveData[],
@@ -28,11 +29,11 @@ function setup(local: SaveData | null, remote: SaveData | null) {
   };
   const store = {
     pull: vi.fn(async (): Promise<unknown> => {
-      if (h.failPull) throw new Error('down');
+      if (h.failPull) throw h.error;
       return h.remote;
     }),
     push: vi.fn(async (d: SaveData): Promise<void> => {
-      if (h.failPush) throw new Error('down');
+      if (h.failPush) throw h.error;
       h.remote = d;
     }),
     remove: vi.fn(async (): Promise<void> => {
@@ -371,5 +372,38 @@ describe('SyncEngine.removeRemote', () => {
     await engine.removeRemote();
     expect(store.remove).toHaveBeenCalledTimes(1);
     expect(h.remote).toBeNull();
+  });
+});
+
+describe('foutdetails in de status', () => {
+  it('errorDetail geeft de code van een Firebase-fout, anders de melding, ingekort', () => {
+    expect(errorDetail({ code: 'permission-denied', message: 'Missing or insufficient permissions.' })).toBe('permission-denied');
+    expect(errorDetail(new Error('Time-out'))).toBe('Time-out');
+    expect(errorDetail('zomaar tekst')).toBe('zomaar tekst');
+    expect(errorDetail(undefined)).toBe('onbekende fout');
+    expect(errorDetail(new Error('x'.repeat(200))).length).toBeLessThanOrEqual(80);
+  });
+
+  it('toont de code als het ophalen mislukt', async () => {
+    const { h, engine, lastStatus } = setup(null, played(newer));
+    h.failPull = true;
+    h.error = { code: 'unavailable' };
+    await engine.start();
+    expect(lastStatus()).toEqual({ kind: 'error', detail: 'unavailable' });
+  });
+
+  it('toont de melding als het opslaan mislukt', async () => {
+    const { h, engine, lastStatus } = setup(played(newer), null);
+    h.failPush = true;
+    h.error = new Error('Time-out');
+    await engine.start();
+    expect(lastStatus()).toEqual({ kind: 'error', detail: 'Time-out' });
+  });
+
+  it('meldt bij onbruikbare cloud-data een eigen detail', async () => {
+    const { h, engine, lastStatus } = setup(played(older), null);
+    h.remote = { version: 99 };
+    await engine.start();
+    expect(lastStatus()).toEqual({ kind: 'error', detail: 'onbruikbare cloud-data' });
   });
 });

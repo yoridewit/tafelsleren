@@ -14,7 +14,14 @@ export type SyncStatus =
   | { kind: 'syncing' }
   | { kind: 'synced'; at: string }
   | { kind: 'offline' }
-  | { kind: 'error' };
+  | { kind: 'error'; detail?: string };
+
+/** Korte, leesbare oorzaak van een fout: bij Firebase de code (bijv. "unavailable"), anders de melding. */
+export function errorDetail(e: unknown): string {
+  const code = (e as { code?: unknown } | null)?.code;
+  const text = typeof code === 'string' && code ? code : e instanceof Error ? e.message : typeof e === 'string' ? e : '';
+  return text ? text.slice(0, 80) : 'onbekende fout';
+}
 
 export type StartOutcome = 'restored' | 'pushed' | 'none' | 'failed';
 
@@ -100,8 +107,8 @@ export class SyncEngine {
     return !!local && local.updatedAt !== this.lastSynced;
   }
 
-  private reportFailure(): void {
-    this.deps.onStatus({ kind: this.deps.isOnline() ? 'error' : 'offline' });
+  private reportFailure(e: unknown): void {
+    this.deps.onStatus(this.deps.isOnline() ? { kind: 'error', detail: errorDetail(e) } : { kind: 'offline' });
   }
 
   private async runStart(): Promise<StartOutcome> {
@@ -110,9 +117,9 @@ export class SyncEngine {
     let raw: unknown;
     try {
       raw = await this.deps.store.pull();
-    } catch {
+    } catch (e) {
       if (generation !== this.generation) return 'failed';
-      this.reportFailure();
+      this.reportFailure(e);
       clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => {
         this.retryTimer = undefined;
@@ -130,7 +137,7 @@ export class SyncEngine {
 
     const remote = raw == null ? null : parseSave(raw);
     if (raw != null && !remote) {
-      this.deps.onStatus({ kind: 'error' });
+      this.deps.onStatus({ kind: 'error', detail: 'onbruikbare cloud-data' });
       return 'failed';
     }
 
@@ -180,8 +187,8 @@ export class SyncEngine {
         if (generation !== this.generation) return;
         this.lastSynced = local.updatedAt;
         this.deps.onStatus({ kind: 'synced', at: new Date().toISOString() });
-      } catch {
-        if (generation === this.generation) this.reportFailure();
+      } catch (e) {
+        if (generation === this.generation) this.reportFailure(e);
       } finally {
         if (generation === this.generation) this.lastPushAt = Date.now();
         this.pushing = false;

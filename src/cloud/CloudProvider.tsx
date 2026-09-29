@@ -4,7 +4,7 @@ import { useStore } from '../state/store';
 import * as auth from './auth';
 import { cloudConfigured } from './client';
 import { firestoreStore } from './store';
-import { SyncEngine, type StartOutcome, type SyncStatus } from './sync';
+import { SyncEngine, errorDetail, type StartOutcome, type SyncStatus } from './sync';
 
 interface Cloud {
   configured: boolean;
@@ -65,9 +65,9 @@ export function CloudProvider({ children }: { children: ReactNode }) {
           unsubscribe = stop;
           window.removeEventListener('online', subscribe);
         })
-        .catch(() => {
+        .catch((e) => {
           subscribing = false;
-          if (!cancelled) setStatus({ kind: navigator.onLine ? 'error' : 'offline' });
+          if (!cancelled) setStatus(navigator.onLine ? { kind: 'error', detail: errorDetail(e) } : { kind: 'offline' });
         });
     };
     subscribe();

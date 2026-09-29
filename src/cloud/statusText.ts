@@ -15,6 +15,6 @@ export function statusText(status: SyncStatus): string {
     case 'offline':
       return 'Offline, wordt later opgeslagen';
     case 'error':
-      return 'Opslaan mislukt, wordt opnieuw geprobeerd';
+      return `Opslaan mislukt${status.detail ? ` (${status.detail})` : ''}, wordt opnieuw geprobeerd`;
   }
 }
