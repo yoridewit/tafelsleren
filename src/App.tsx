@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from './state/store';
 import type { Screen } from './nav';
 import { setMusicWanted } from './music';
+import { dayKey } from './logic/dates';
+import { allowedScreen } from './logic/timeLimit';
 import { Welcome } from './screens/Welcome';
 import { Home } from './screens/Home';
 import { IslandScreen } from './screens/IslandScreen';
@@ -22,7 +24,12 @@ export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [visit, setVisit] = useState(0);
 
-  const go = useCallback((s: Screen) => {
+  const saveRef = useRef(state.save);
+  saveRef.current = state.save;
+
+  const go = useCallback((target: Screen) => {
+    const save = saveRef.current;
+    const s = save ? allowedScreen(target, save, dayKey()) : target;
     setScreen(s);
     setVisit((v) => v + 1); // nieuwe key: "nog een ronde" start echt opnieuw
     window.scrollTo(0, 0);
