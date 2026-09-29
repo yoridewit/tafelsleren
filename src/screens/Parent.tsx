@@ -99,7 +99,7 @@ export function Parent({ go }: { go: Go }) {
             ))}
           </div>
           <p className="muted">
-            Een som telt als "uit het hoofd" als ze hem op minstens 2 verschillende dagen binnen 4 seconden goed had en hij
+            Een som telt als "uit het hoofd" als ze hem op minstens 2 verschillende dagen snel goed had (binnen 5 seconden, 7 bij antwoorden vanaf 10) en hij
             een paar keer is herhaald. 3×7 en 7×3 tellen als dezelfde som.
           </p>
         </section>

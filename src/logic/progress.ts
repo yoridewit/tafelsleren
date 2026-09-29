@@ -20,7 +20,8 @@ export function islandProgress(island: number, facts: Record<FactKey, FactState>
     else if (s === 'oefenen') p.practicing++;
     else p.fresh++;
   }
-  p.mastered = p.practicing === 0 && p.fresh === 0 && p.known >= Math.ceil(p.total * 0.8);
+  // Een hardnekkige som (nog "aan het oefenen") houdt het eiland niet tegen; hij blijft terugkomen als herhaling.
+  p.mastered = p.fresh === 0 && p.known >= Math.ceil(p.total * 0.8);
   return p;
 }
 

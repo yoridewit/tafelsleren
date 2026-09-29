@@ -17,6 +17,15 @@ describe('progress', () => {
     expect(islandProgress(1, facts).mastered).toBe(false);
     expect(islandProgress(1, facts).known).toBe(7);
   });
+  it('a stubborn fact in practice does not block mastery, an unseen one does', () => {
+    const facts: Record<string, FactState> = {};
+    const two = factsForIsland(1);
+    two.forEach((k, i) => (facts[k] = i < 8 ? known : { ...newFactState(), box: 2, due: '2026-09-21' }));
+    expect(islandProgress(1, facts).practicing).toBe(2);
+    expect(islandProgress(1, facts).mastered).toBe(true);
+    facts[two[9]] = newFactState();
+    expect(islandProgress(1, facts).mastered).toBe(false);
+  });
   it('unlocks the next island after mastery, sticky', () => {
     const facts: Record<string, FactState> = {};
     for (const k of factsForIsland(0)) facts[k] = known;

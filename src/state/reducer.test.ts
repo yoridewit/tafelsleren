@@ -18,6 +18,25 @@ describe('reducer', () => {
     expect(s.save!.facts['2-3'].box).toBe(2);
   });
 
+  it('answer uses a higher fast limit for two digit products', () => {
+    const slowSmall = reducer(started(), { type: 'answer', key: '2-3', correct: true, ms: 6500, today: T });
+    expect(slowSmall.save!.facts['2-3'].box).toBe(1);
+    const fastBig = reducer(started(), { type: 'answer', key: '2-9', correct: true, ms: 6500, today: T });
+    expect(fastBig.save!.facts['2-9'].box).toBe(2);
+  });
+
+  it('a slip does not demote the fact', () => {
+    let s = started();
+    s.save!.facts['2-9'] = { box: 4, due: '2026-09-25', fastDays: [T, '2026-09-20'], seen: 6, wrong: 0 };
+    s = reducer(s, { type: 'answer', key: '2-9', correct: false, ms: 900, today: T, slip: true });
+    expect(s.save!.facts['2-9'].box).toBe(4);
+    expect(s.save!.facts['2-9'].wrong).toBe(0);
+    expect(s.save!.facts['2-9'].seen).toBe(7);
+    s = reducer(s, { type: 'answer', key: '2-9', correct: false, ms: 900, today: T });
+    expect(s.save!.facts['2-9'].box).toBe(3);
+    expect(s.save!.facts['2-9'].wrong).toBe(1);
+  });
+
   it('round reward: 1 per correct + 3, +5 for first round of the day', () => {
     expect(roundReward(8, true)).toBe(16);
     expect(roundReward(8, false)).toBe(11);

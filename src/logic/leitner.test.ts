@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyAnswer, newFactState, isKnown, factStatus, isDue } from './leitner';
+import { applyAnswer, newFactState, isKnown, factStatus, isDue, fastLimitMs } from './leitner';
 
 const T = '2026-09-21';
 
@@ -16,29 +16,62 @@ describe('leitner', () => {
     expect(s.due).toBe(T);
     expect(s.fastDays).toEqual([]);
   });
-  it('wrong answer drops to box 1', () => {
+  it('wrong answer drops one box, never below 1', () => {
     const s = applyAnswer({ ...newFactState(), box: 4 }, false, 1000, T);
-    expect(s.box).toBe(1);
+    expect(s.box).toBe(3);
     expect(s.wrong).toBe(1);
+    expect(applyAnswer({ ...newFactState(), box: 1 }, false, 1000, T).box).toBe(1);
+    expect(applyAnswer(newFactState(), false, 1000, T).box).toBe(1);
+  });
+  it('a slip (typo) costs nothing but still counts as seen', () => {
+    const before = { ...newFactState(), box: 4, due: '2026-09-25', fastDays: ['2026-09-19', '2026-09-20'], seen: 6, wrong: 1 };
+    const s = applyAnswer(before, false, 1000, T, { slip: true });
+    expect(s).toEqual({ ...before, seen: 7 });
+  });
+  it('fast limit is 5 s for one digit answers and 7 s from 10 up', () => {
+    expect(fastLimitMs(6)).toBe(5000);
+    expect(fastLimitMs(9)).toBe(5000);
+    expect(fastLimitMs(10)).toBe(7000);
+    expect(fastLimitMs(100)).toBe(7000);
+  });
+  it('a slower answer counts as fast when a higher limit is given', () => {
+    expect(applyAnswer(newFactState(), true, 6500, T).box).toBe(1);
+    expect(applyAnswer(newFactState(), true, 6500, T, { fastMs: 7000 }).box).toBe(2);
+    expect(applyAnswer(newFactState(), true, 5000, T).box).toBe(2);
   });
   it('box is capped at 5', () => {
     const s = applyAnswer({ ...newFactState(), box: 5 }, true, 1000, T);
     expect(s.box).toBe(5);
     expect(s.due).toBe('2026-09-28');
   });
-  it('goes up at most one box per day', () => {
+  it('learns in steps: boxes 1 to 3 can be climbed on the same day', () => {
     let s = applyAnswer(newFactState(), true, 1000, T);
-    s = applyAnswer(s, true, 1000, T);
     expect(s.box).toBe(2);
-    s = applyAnswer(s, true, 1000, '2026-09-22');
+    s = applyAnswer(s, true, 1000, T);
     expect(s.box).toBe(3);
+    expect(s.due).toBe('2026-09-23');
   });
-  it('after a mistake it can climb again the same day, but only once', () => {
+  it('from box 3 up it goes at most one box per day', () => {
+    let s = applyAnswer({ ...newFactState(), box: 3 }, true, 1000, T);
+    expect(s.box).toBe(4);
+    s = applyAnswer(s, true, 1000, T);
+    expect(s.box).toBe(4);
+    s = applyAnswer(s, true, 1000, '2026-09-22');
+    expect(s.box).toBe(5);
+  });
+  it('reaching box 3 uses up the day: no box 4 until tomorrow', () => {
+    let s = applyAnswer({ ...newFactState(), box: 2 }, true, 1000, T);
+    expect(s.box).toBe(3);
+    s = applyAnswer(s, true, 1000, T);
+    expect(s.box).toBe(3);
+    s = applyAnswer(s, true, 1000, '2026-09-22');
+    expect(s.box).toBe(4);
+  });
+  it('after a mistake it climbs back the same day through the learning boxes', () => {
     let s = applyAnswer({ ...newFactState(), box: 3 }, false, 1000, T);
-    s = applyAnswer(s, true, 1000, T);
     expect(s.box).toBe(2);
     s = applyAnswer(s, true, 1000, T);
-    expect(s.box).toBe(2);
+    expect(s.box).toBe(3);
   });
   it('fast days are distinct', () => {
     let s = applyAnswer(newFactState(), true, 1000, T);

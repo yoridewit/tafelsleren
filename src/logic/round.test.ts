@@ -83,4 +83,26 @@ describe('buildRound', () => {
     const qs = buildRound({ island: 0, facts, unlocked: [0], today: T, rng: seq() });
     expect(qs.length).toBe(10);
   });
+
+  const seeded = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+  it('filler prefers sums that are not known yet over sums that are already solid', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = { ...st(5, '2026-10-01'), fastDays: [T, '2026-09-20'] };
+    facts['1-7'] = st(3, '2026-09-25');
+    for (let seed = 1; seed <= 30; seed++) {
+      const qs = buildRound({ island: 0, facts, unlocked: [0], today: T, rng: seeded(seed) });
+      expect(qs.some((q) => q.key === '1-7'), 'seed ' + seed).toBe(true);
+    }
+  });
+
+  it('filler puts sums that already climbed today after the ones that did not', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = { ...st(3, '2026-09-25'), promoted: T };
+    facts['1-7'] = st(3, '2026-09-25');
+    for (let seed = 1; seed <= 30; seed++) {
+      const qs = buildRound({ island: 0, facts, unlocked: [0], today: T, rng: seeded(seed) });
+      expect(qs.some((q) => q.key === '1-7'), 'seed ' + seed).toBe(true);
+    }
+  });
 });

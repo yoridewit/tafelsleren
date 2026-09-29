@@ -5,8 +5,8 @@ import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
 import { ISLANDS } from '../logic/facts';
-import { FAST_MS } from '../logic/leitner';
 import { buildRound, type Question } from '../logic/round';
+import { isSlip } from '../logic/slip';
 import { roundReward } from '../state/reducer';
 import { useSave } from '../state/store';
 import { say, sayHint, sayPraise, sayQuestion, sound } from '../audio';
@@ -86,9 +86,10 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
     }
     if (answered.current === idx) return;
     answered.current = idx;
-    const ms = wasIntro.current ? FAST_MS + 1 : performance.now() - started.current;
+    // Na de uitleg telt het antwoord nooit als snel: ze had het net gezien.
+    const ms = wasIntro.current ? Infinity : performance.now() - started.current;
     const ok = given === answer;
-    dispatch({ type: 'answer', key: q.key, correct: ok, ms, today });
+    dispatch({ type: 'answer', key: q.key, correct: ok, ms, today, slip: !ok && isSlip(value, answer) });
     if (ok) {
       sound.correct();
       correctRef.current += 1;

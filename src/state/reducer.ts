@@ -1,7 +1,7 @@
-import { applyAnswer, newFactState } from '../logic/leitner';
+import { applyAnswer, fastLimitMs, newFactState } from '../logic/leitner';
 import { computeUnlocks, islandProgress, knownCount } from '../logic/progress';
 import { currentStreak } from '../logic/streak';
-import { ISLANDS, type FactKey } from '../logic/facts';
+import { ISLANDS, parseFactKey, type FactKey } from '../logic/facts';
 import { emptySave, type SaveData, type Settings } from '../logic/storage';
 import { itemById, type ItemSlot } from '../data/shop';
 import { earnedStickerIds } from '../data/stickers';
@@ -16,7 +16,7 @@ export interface AppState {
 
 export type Action =
   | { type: 'setup'; elfName: string }
-  | { type: 'answer'; key: FactKey; correct: boolean; ms: number; today: string }
+  | { type: 'answer'; key: FactKey; correct: boolean; ms: number; today: string; slip?: boolean }
   | { type: 'tick'; today: string; deltaMs: number }
   | { type: 'finishRound'; correct: number; today: string }
   | { type: 'speedDone'; score: number; today: string }
@@ -82,7 +82,9 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'answer': {
       const prev = save.facts[action.key] ?? newFactState();
-      return set({ facts: { ...save.facts, [action.key]: applyAnswer(prev, action.correct, action.ms, action.today) } });
+      const [a, b] = parseFactKey(action.key);
+      const next = applyAnswer(prev, action.correct, action.ms, action.today, { fastMs: fastLimitMs(a * b), slip: action.slip });
+      return set({ facts: { ...save.facts, [action.key]: next } });
     }
     case 'tick': {
       // Geklemd tegen bijv. een dichtgeklapte laptop of systeemklok die verspringt.

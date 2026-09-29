@@ -1,5 +1,5 @@
 import { ISLANDS, factsForIsland, introOrderForIsland, orientFact, type FactKey } from './facts';
-import { factStatus, isDue, type FactState } from './leitner';
+import { factStatus, isDue, isKnown, type FactState } from './leitner';
 
 export interface Question {
   a: number;
@@ -62,7 +62,14 @@ export function buildRound({ island, facts, unlocked, today, rng = Math.random, 
   );
   const islandDue = islandFacts.filter((k) => isDue(facts[k], today)).sort(byDue);
   const otherDue = otherFacts.filter((k) => isDue(facts[k], today)).sort(byDue).slice(0, 3);
-  const filler = [...shuffle(islandFacts.filter(practiced), rng), ...shuffle(otherFacts.filter(practiced), rng)];
+  // Opvulling: eerst sommen die nog niet gekend zijn en vandaag nog niet stegen, dan die al gestegen zijn, en
+  // gekende sommen pas als laatste. Extra herhaling van een som die vandaag toch niet verder kan, levert niets op.
+  const priority = (k: FactKey) => (isKnown(facts[k]) ? 2 : facts[k].promoted === today ? 1 : 0);
+  const fillerPool = [...islandFacts.filter(practiced), ...otherFacts.filter(practiced)];
+  const filler = [0, 1, 2].flatMap((p) => [
+    ...shuffle(fillerPool.filter((k) => islandFacts.includes(k) && priority(k) === p), rng),
+    ...shuffle(fillerPool.filter((k) => !islandFacts.includes(k) && priority(k) === p), rng),
+  ]);
   const reviewSlots = Math.max(0, size - 2 * newKeys.length);
   const reviews = shuffle([...new Set([...islandDue, ...otherDue, ...filler])].slice(0, reviewSlots), rng);
 

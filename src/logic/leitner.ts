@@ -6,25 +6,48 @@ export interface FactState {
   fastDays: string[]; // laatste dagen waarop snel én goed
   seen: number;
   wrong: number;
-  /** Dag waarop de som voor het laatst een doos omhoog ging (max. één stap per dag). */
+  /** Dag waarop de som voor het laatst een doos omhoog ging (vanaf box 3 max. één stap per dag). */
   promoted?: string;
 }
 
-export const FAST_MS = 4000;
+export const FAST_MS = 5000;
+/** Tweecijferige antwoorden kosten meer tijd om te tikken. */
+export const FAST_MS_BIG = 7000;
+
+/** Binnen hoeveel milliseconden een goed antwoord op een som met dit product als "snel" telt. */
+export function fastLimitMs(product: number): number {
+  return product >= 10 ? FAST_MS_BIG : FAST_MS;
+}
+
 const INTERVAL_DAYS = [0, 0, 1, 2, 4, 7];
 
 export function newFactState(): FactState {
   return { box: 0, due: null, fastDays: [], seen: 0, wrong: 0 };
 }
 
-export function applyAnswer(s: FactState, correct: boolean, ms: number, today: string): FactState {
+export interface AnswerOptions {
+  /** Grens voor een snel antwoord (standaard FAST_MS). */
+  fastMs?: number;
+  /** Verkeerd antwoord dat een tikfout lijkt: telt als gezien, maar verandert de box niet. */
+  slip?: boolean;
+}
+
+export function applyAnswer(
+  s: FactState,
+  correct: boolean,
+  ms: number,
+  today: string,
+  { fastMs = FAST_MS, slip = false }: AnswerOptions = {},
+): FactState {
+  if (!correct && slip) return { ...s, seen: s.seen + 1 };
   let box: number;
   let fastDays = s.fastDays;
   let promoted = s.promoted;
-  if (!correct) box = 1;
-  else if (ms <= FAST_MS) {
+  if (!correct) box = Math.max(1, s.box - 1);
+  else if (ms <= fastMs) {
     if (!fastDays.includes(today)) fastDays = [...fastDays, today].slice(-5);
-    if (promoted === today) box = Math.max(1, s.box);
+    // Box 1 t/m 3 zijn leerstappen die op één dag kunnen; vanaf box 3 maximaal één stap per dag.
+    if (promoted === today && s.box >= 3) box = s.box;
     else {
       box = Math.min(5, Math.max(1, s.box) + 1);
       promoted = today;
