@@ -68,6 +68,44 @@ export function wandSparkles(rarity: Rarity): ReactElement {
 }
 
 export const BACKGROUNDS: Record<string, ReactElement> = {
+  bloemenweide: (
+    <g>
+      <rect x="0" y="-30" width="200" height="290" rx="28" fill="#dbeafe" />
+      <ellipse cx="55" cy="10" rx="30" ry="10" fill="#fff" opacity="0.9" />
+      <ellipse cx="150" cy="40" rx="24" ry="8" fill="#fff" opacity="0.8" />
+      <rect x="0" y="205" width="200" height="55" fill="#86efac" />
+      {[
+        [20, 215, '#f472b6'],
+        [55, 228, '#fde047'],
+        [150, 220, '#ffffff'],
+        [180, 232, '#c084fc'],
+        [120, 238, '#fb923c'],
+      ].map(([x, y, c]) => (
+        <g key={String(x)} transform={`translate(${x} ${y})`}>
+          <line x1="0" y1="0" x2="0" y2="16" stroke="#16a34a" strokeWidth="2" />
+          {[0, 72, 144, 216, 288].map((r) => (
+            <circle key={r} cx={5 * Math.cos((r * Math.PI) / 180)} cy={5 * Math.sin((r * Math.PI) / 180)} r="3.6" fill={c as string} />
+          ))}
+          <circle r="2.6" fill="#f59e0b" />
+        </g>
+      ))}
+    </g>
+  ),
+  melkweg: (
+    <g>
+      <rect x="0" y="-30" width="200" height="290" rx="28" fill="#0f0a2e" />
+      <ellipse cx="100" cy="90" rx="130" ry="34" fill="#7c3aed" opacity="0.45" transform="rotate(-25 100 90)" />
+      <ellipse cx="100" cy="90" rx="96" ry="18" fill="#ec4899" opacity="0.4" transform="rotate(-25 100 90)" />
+      <ellipse cx="100" cy="90" rx="64" ry="8" fill="#fde68a" opacity="0.5" transform="rotate(-25 100 90)" />
+      {[
+        [20, -12], [60, 8], [150, -14], [176, 30], [30, 60], [170, 100], [14, 130], [184, 150], [40, 190], [160, 200], [100, -18], [120, 20],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.2 : 1.4} fill="#fff" opacity="0.9" />
+      ))}
+      <polygon points={star(150, 60, 6)} fill="#fde68a" />
+      <polygon points={star(36, 100, 5)} fill="#bae6fd" />
+    </g>
+  ),
   sterrenhemel: (
     <g>
       <defs>
@@ -216,6 +254,45 @@ export const BACKGROUNDS: Record<string, ReactElement> = {
 };
 
 export const PETS: Record<string, ReactElement> = {
+  konijntje: (
+    <g transform="translate(34 218)">
+      <ellipse cx="2" cy="18" rx="18" ry="14" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1.5" />
+      <ellipse cx="-8" cy="-24" rx="5" ry="15" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1.5" />
+      <ellipse cx="8" cy="-24" rx="5" ry="15" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1.5" />
+      <ellipse cx="-8" cy="-24" rx="2.5" ry="10" fill="#fbcfe8" />
+      <ellipse cx="8" cy="-24" rx="2.5" ry="10" fill="#fbcfe8" />
+      <circle cx="0" cy="0" r="17" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1.5" />
+      <circle cx="-6" cy="-2" r="2.8" fill="#1f2937" />
+      <circle cx="6" cy="-2" r="2.8" fill="#1f2937" />
+      <ellipse cx="0" cy="5" rx="2.5" ry="2" fill="#f472b6" />
+      <path d="M0 7 v3 M0 10 q-4 3 -6 1 M0 10 q4 3 6 1" stroke="#9ca3af" strokeWidth="1.2" fill="none" />
+      <circle cx="19" cy="24" r="5" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+    </g>
+  ),
+  eendje: (
+    <g transform="translate(34 220)">
+      <ellipse cx="2" cy="16" rx="20" ry="14" fill="#fde047" stroke="#eab308" strokeWidth="1.5" />
+      <path d="M6 14 q8 -6 14 2" stroke="#eab308" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <circle cx="-4" cy="-4" r="15" fill="#fde047" stroke="#eab308" strokeWidth="1.5" />
+      <ellipse cx="-16" cy="0" rx="8" ry="4.5" fill="#fb923c" />
+      <circle cx="-5" cy="-7" r="2.6" fill="#1f2937" />
+      <circle cx="-6" cy="-8" r="0.9" fill="#fff" />
+      <path d="M-2 -19 q3 -7 7 -1" stroke="#eab308" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </g>
+  ),
+  feniks: (
+    <g transform="translate(36 214)">
+      <path d="M14 22 Q40 30 42 6 Q34 16 26 14 Q38 2 34 -10 Q26 4 16 8Z" fill="#f97316" />
+      <path d="M18 24 Q34 40 24 44 Q20 36 14 30Z" fill="#dc2626" />
+      <ellipse cx="2" cy="16" rx="18" ry="16" fill="#ef4444" />
+      <ellipse cx="2" cy="22" rx="10" ry="9" fill="#fbbf24" />
+      <path d="M-10 10 Q-30 0 -22 -14 Q-12 -4 -6 4Z" fill="#f97316" />
+      <circle cx="-2" cy="-6" r="13" fill="#f97316" />
+      <path d="M-10 -16 L-6 -30 L-2 -18 L0 -18 L4 -32 L8 -18Z" fill="#fde047" />
+      <path d="M-15 -6 L-24 -3 L-15 0Z" fill="#facc15" />
+      <circle cx="-4" cy="-8" r="2.6" fill="#1f2937" />
+    </g>
+  ),
   lieveheersbeestje: (
     <g transform="translate(34 222)">
       <circle cx="0" cy="-10" r="9" fill="#1f2937" />
@@ -308,6 +385,27 @@ export const PETS: Record<string, ReactElement> = {
 };
 
 export const WINGS: Record<string, ReactElement> = {
+  bladvleugels: (
+    <g stroke="#166534" strokeWidth="2">
+      <path d="M96 128 C50 70 14 110 30 150 C60 160 90 150 96 140Z" fill="#4ade80" />
+      <path d="M104 128 C150 70 186 110 170 150 C140 160 110 150 104 140Z" fill="#4ade80" />
+      <path d="M96 150 C60 160 44 190 66 196 C86 198 96 175 96 158Z" fill="#86efac" />
+      <path d="M104 150 C140 160 156 190 134 196 C114 198 104 175 104 158Z" fill="#86efac" />
+      <path d="M96 138 C70 122 50 118 34 122 M104 138 C130 122 150 118 166 122 M96 158 C80 170 70 180 68 190 M104 158 C120 170 130 180 132 190" fill="none" strokeWidth="1.5" />
+    </g>
+  ),
+  feniksvleugels: (
+    <g>
+      {[false, true].map((mirror) => (
+        <g key={String(mirror)} transform={mirror ? 'translate(200 0) scale(-1 1)' : undefined}>
+          <path d="M96 128 C20 38 -6 108 12 162 C24 194 72 178 96 150Z" fill="#dc2626" stroke="#7f1d1d" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M96 132 C34 60 14 112 28 156 C38 180 74 168 96 148Z" fill="#f97316" />
+          <path d="M96 138 C56 90 40 122 50 150 C58 166 80 160 96 148Z" fill="#facc15" />
+          <path d="M14 150 L4 176 L22 166 L20 190 L36 172 L42 194 L54 170" fill="none" stroke="#dc2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      ))}
+    </g>
+  ),
   default: (
     <g fill="#e0f2fe" stroke="#7dd3fc" strokeWidth="2" opacity="0.9">
       <ellipse cx="60" cy="118" rx="30" ry="46" transform="rotate(-35 60 118)" />
@@ -394,6 +492,32 @@ export const BACK_ITEMS: Record<string, ReactElement> = {
 };
 
 export const NECK: Record<string, ReactElement> = {
+  'gestreepte-sjaal': (
+    <g>
+      <rect x="76" y="110" width="48" height="14" rx="7" fill="#fff" stroke="#e11d48" strokeWidth="1.5" />
+      {[84, 96, 108, 119].map((x) => (
+        <rect key={x} x={x - 3} y="111" width="5" height="12" fill="#f43f5e" />
+      ))}
+      <g transform="rotate(-8 112 116)">
+        <rect x="106" y="116" width="12" height="36" rx="5" fill="#fff" stroke="#e11d48" strokeWidth="1.5" />
+        {[122, 130, 138, 146].map((y) => (
+          <rect key={y} x="106.8" y={y} width="10.4" height="4" fill="#f43f5e" />
+        ))}
+      </g>
+    </g>
+  ),
+  pauwenkraag: (
+    <g>
+      {[-52, -32, -12, 12, 32, 52].map((a) => (
+        <g key={a} transform={`translate(100 118) rotate(${a})`}>
+          <ellipse cx="0" cy="26" rx="8" ry="18" fill="#0d9488" stroke="#0f766e" strokeWidth="1.5" />
+          <ellipse cx="0" cy="33" rx="5" ry="7" fill="#38bdf8" />
+          <circle cx="0" cy="35" r="2.6" fill="#fde047" />
+        </g>
+      ))}
+      <rect x="76" y="108" width="48" height="12" rx="6" fill="#0f766e" stroke="#115e59" strokeWidth="1.5" />
+    </g>
+  ),
   'sjaal-rood': (
     <g>
       <rect x="76" y="110" width="48" height="14" rx="7" fill="#ef4444" />
@@ -460,6 +584,33 @@ export const NECK: Record<string, ReactElement> = {
 };
 
 export const HATS: Record<string, ReactElement> = {
+  strohoedje: (
+    <g>
+      <ellipse cx="100" cy="46" rx="56" ry="11" fill="#fcd34d" stroke="#d97706" strokeWidth="2" />
+      <path d="M74 44 Q76 14 100 14 Q124 14 126 44Z" fill="#fde68a" stroke="#d97706" strokeWidth="2" strokeLinejoin="round" />
+      <rect x="74" y="32" width="52" height="8" fill="#ec4899" />
+      <path d="M118 36 L132 26 L130 42Z" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" strokeLinejoin="round" />
+    </g>
+  ),
+  pompommuts: (
+    <g>
+      <path d="M64 50 Q64 12 100 12 Q136 12 136 50Z" fill="#60a5fa" stroke="#2563eb" strokeWidth="2" strokeLinejoin="round" />
+      <rect x="62" y="42" width="76" height="13" rx="6" fill="#93c5fd" stroke="#2563eb" strokeWidth="2" />
+      <path d="M76 42 V55 M88 42 V55 M100 42 V55 M112 42 V55 M124 42 V55" stroke="#2563eb" strokeWidth="1.5" />
+      <circle cx="100" cy="9" r="10" fill="#fff" stroke="#e5e7eb" strokeWidth="2" />
+    </g>
+  ),
+  regenboogkroon: (
+    <g>
+      <path d="M68 48 L64 14 L84 32 L100 4 L116 32 L136 14 L132 48Z" fill="#fde047" stroke="#d97706" strokeWidth="2.5" strokeLinejoin="round" />
+      {['#f87171', '#fb923c', '#facc15', '#4ade80', '#60a5fa', '#c084fc'].map((c, i) => (
+        <circle key={c} cx={76 + i * 9.6} cy="40" r="4" fill={c} stroke="#fff" strokeWidth="1" />
+      ))}
+      <circle cx="64" cy="14" r="5" fill="#f472b6" stroke="#fff" strokeWidth="1" />
+      <circle cx="100" cy="4" r="6" fill="#60a5fa" stroke="#fff" strokeWidth="1" />
+      <circle cx="136" cy="14" r="5" fill="#4ade80" stroke="#fff" strokeWidth="1" />
+    </g>
+  ),
   strik: (
     <g transform="translate(128 46) rotate(20)">
       <path d="M0 0 L-20 -12 L-20 12Z" fill="#f472b6" stroke="#db2777" strokeWidth="2" />
@@ -550,6 +701,24 @@ export const HATS: Record<string, ReactElement> = {
 
 /** Toverstaven, getekend vanaf de hand (0,0). */
 export const WANDS: Record<string, ReactElement> = {
+  lolliestaf: (
+    <g>
+      <line x1="0" y1="8" x2="10" y2="-40" stroke="#f9fafb" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="11" cy="-52" r="15" fill="#f472b6" stroke="#be185d" strokeWidth="2" />
+      <path d="M11 -52 a3 3 0 0 1 6 0 a6 6 0 0 1 -12 0 a9 9 0 0 1 18 0 a12 12 0 0 1 -24 0" stroke="#fff" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+    </g>
+  ),
+  galaxystaf: (
+    <g>
+      <line x1="0" y1="8" x2="10" y2="-42" stroke="#312e81" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="11" cy="-56" r="22" fill="#a78bfa" opacity="0.18" />
+      <circle cx="11" cy="-56" r="17" fill="#1e1b4b" stroke="#a78bfa" strokeWidth="2.5" />
+      <path d="M2 -52 a10 10 0 0 1 18 -6 a6 6 0 0 1 -10 4" stroke="#e879f9" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <circle cx="4" cy="-63" r="1.6" fill="#fff" />
+      <circle cx="18" cy="-50" r="1.4" fill="#fde68a" />
+      <circle cx="17" cy="-65" r="1.2" fill="#bae6fd" />
+    </g>
+  ),
   sterrenstaf: (
     <g>
       <line x1="0" y1="8" x2="10" y2="-44" stroke="#a16207" strokeWidth="5" strokeLinecap="round" />

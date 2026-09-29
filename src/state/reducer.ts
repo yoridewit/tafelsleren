@@ -3,7 +3,7 @@ import { computeUnlocks, islandProgress, knownCount } from '../logic/progress';
 import { currentStreak } from '../logic/streak';
 import { ISLANDS, parseFactKey, type FactKey } from '../logic/facts';
 import { emptySave, type SaveData, type Settings } from '../logic/storage';
-import { itemById, type ItemSlot } from '../data/shop';
+import { isUnlocked, itemById, type ItemSlot } from '../data/shop';
 import { earnedStickerIds } from '../data/stickers';
 
 export interface AppState {
@@ -32,10 +32,12 @@ export type Action =
   | { type: 'reset' }
   | { type: 'clearCelebrations' };
 
-export const STARS = { perCorrect: 1, roundDone: 3, firstRoundOfDay: 5 };
+export const STARS = { perCorrect: 1, roundDone: 3, firstRoundOfDay: 5, fullRoundsPerDay: 3 };
 
-export function roundReward(correct: number, firstToday: boolean): number {
-  return correct * STARS.perCorrect + STARS.roundDone + (firstToday ? STARS.firstRoundOfDay : 0);
+/** Sterren voor een ronde; vanaf de vierde ronde van de dag nog een kwart (kort en vaak, niet eindeloos). */
+export function roundReward(correct: number, roundsBefore: number): number {
+  const full = correct * STARS.perCorrect + STARS.roundDone + (roundsBefore === 0 ? STARS.firstRoundOfDay : 0);
+  return roundsBefore >= STARS.fullRoundsPerDay ? Math.ceil(full / 4) : full;
 }
 
 export function speedReward(score: number): number {
@@ -97,7 +99,7 @@ export function reducer(state: AppState, action: Action): AppState {
       const already = save.roundsByDay[action.today] ?? 0;
       return afterPlay(state, {
         ...save,
-        stars: save.stars + roundReward(action.correct, already === 0),
+        stars: save.stars + roundReward(action.correct, already),
         roundsDone: save.roundsDone + 1,
         roundsByDay: { ...save.roundsByDay, [action.today]: already + 1 },
       }, action.today);
@@ -110,7 +112,7 @@ export function reducer(state: AppState, action: Action): AppState {
       }, action.today);
     case 'buy': {
       const item = itemById(action.id);
-      if (!item || save.owned.includes(item.id) || save.stars < item.price || !save.unlocked.includes(item.island))
+      if (!item || save.owned.includes(item.id) || save.stars < item.price || !isUnlocked(item, knownCount(save.facts)))
         return state;
       return set({
         stars: save.stars - item.price,

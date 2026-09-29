@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
-import { rarityInfo, SHOP, SLOTS, itemById, type ItemSlot } from '../data/shop';
-import { ISLANDS } from '../logic/facts';
+import { isUnlocked, rarityInfo, SHOP, SLOTS, itemById, type ItemSlot } from '../data/shop';
+import { knownCount } from '../logic/progress';
 import { useSave } from '../state/store';
 import { say, sayOnce, sound } from '../audio';
 import type { Go } from '../nav';
 
 export function Shop({ go }: { go: Go }) {
   const { save, dispatch } = useSave();
+  const known = knownCount(save.facts);
   const [slot, setSlot] = useState<ItemSlot>('hoed');
   const [picked, setPicked] = useState<string | null>(null);
   const item = picked ? itemById(picked) : undefined;
@@ -17,7 +18,7 @@ export function Shop({ go }: { go: Go }) {
 
   const owned = item && save.owned.includes(item.id);
   const wearing = item && save.wearing[item.slot] === item.id;
-  const open = item && save.unlocked.includes(item.island);
+  const open = item && isUnlocked(item, known);
 
   useEffect(() => sayOnce('winkel-welkom', 'winkel-welkom'), []);
 
@@ -25,7 +26,7 @@ export function Shop({ go }: { go: Go }) {
     setPicked(id);
     const it = itemById(id)!;
     if (save.owned.includes(id)) return;
-    if (!save.unlocked.includes(it.island)) say('winkel-later');
+    if (!isUnlocked(it, known)) say('winkel-later');
     else if (save.stars < it.price) say('sparen');
   };
 
@@ -63,7 +64,7 @@ export function Shop({ go }: { go: Go }) {
               ) : !open ? (
                 <div className="locked-note">
                   <Icon name="lock" />
-                  Komt in de winkel als de {ISLANDS[item.island].name.toLowerCase()} open is.
+                  Leer nog {item.needs - known} {item.needs - known === 1 ? 'som' : 'sommen'} uit je hoofd om dit te ontgrendelen.
                 </div>
               ) : save.stars >= item.price ? (
                 <button
@@ -112,7 +113,7 @@ export function Shop({ go }: { go: Go }) {
           <div className="shop-grid">
             {SHOP.filter((i) => i.slot === slot).map((i) => {
               const isOwned = save.owned.includes(i.id);
-              const isOpen = save.unlocked.includes(i.island);
+              const isOpen = isUnlocked(i, known);
               const isWorn = save.wearing[i.slot] === i.id;
               const rarity = rarityInfo(i.rarity);
               return (
@@ -138,7 +139,7 @@ export function Shop({ go }: { go: Go }) {
                   ) : (
                     <span className="price locked">
                       <Icon name="lock" />
-                      Later
+                      Nog {i.needs - known}
                     </span>
                   )}
                 </button>

@@ -63,10 +63,10 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
       setIdx(idx + 1);
       return;
     }
-    const firstToday = !save.roundsByDay[today];
+    const roundsBefore = save.roundsByDay[today] ?? 0;
     const correct = correctRef.current;
     dispatch({ type: 'finishRound', correct, today });
-    go({ name: 'result', island, correct, total: queue.length, stars: roundReward(correct, firstToday) });
+    go({ name: 'result', island, correct, total: queue.length, stars: roundReward(correct, roundsBefore) });
   };
 
   const submit = (value: string) => {

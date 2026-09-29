@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { reducer, initialState, roundReward, stampedReducer, type Action, type AppState } from './reducer';
 import { emptySave, parseSave } from '../logic/storage';
-import { factsForIsland } from '../logic/facts';
+import { ALL_FACTS, factsForIsland } from '../logic/facts';
 
 const T = '2026-09-21';
 const started = (): AppState => reducer(initialState(null), { type: 'setup', elfName: 'Pip' });
@@ -38,8 +38,23 @@ describe('reducer', () => {
   });
 
   it('round reward: 1 per correct + 3, +5 for first round of the day', () => {
-    expect(roundReward(8, true)).toBe(16);
-    expect(roundReward(8, false)).toBe(11);
+    expect(roundReward(8, 0)).toBe(16);
+    expect(roundReward(8, 1)).toBe(11);
+    expect(roundReward(8, 2)).toBe(11);
+  });
+
+  it('from the fourth round of the day the reward is a quarter', () => {
+    expect(roundReward(8, 3)).toBe(3);
+    expect(roundReward(10, 7)).toBe(4);
+    expect(roundReward(0, 3)).toBe(1);
+  });
+
+  it('finishRound pays the reduced reward after three rounds today', () => {
+    let s = started();
+    for (let i = 0; i < 3; i++) s = reducer(s, { type: 'finishRound', correct: 8, today: T });
+    const before = s.save!.stars;
+    s = reducer(s, { type: 'finishRound', correct: 8, today: T });
+    expect(s.save!.stars - before).toBe(3);
   });
 
   it('finishRound gives stars, a practice day and the first sticker', () => {
@@ -64,19 +79,24 @@ describe('reducer', () => {
     expect(s.save!.stickers).toContain('eiland-0');
   });
 
-  it('buy needs enough stars and an open island, then wears the item', () => {
+  it('buy needs enough stars and enough known sums, then wears the item', () => {
     let s = started();
     s = reducer(s, { type: 'buy', id: 'strik' });
     expect(s.save!.owned).toEqual([]);
-    s.save!.stars = 100;
+    s.save!.stars = 500;
     s = reducer(s, { type: 'buy', id: 'kroon' });
     expect(s.save!.owned).toEqual([]);
     s = reducer(s, { type: 'buy', id: 'strik' });
     expect(s.save!.owned).toEqual(['strik']);
-    expect(s.save!.stars).toBe(90);
+    expect(s.save!.stars).toBe(485);
     expect(s.save!.wearing.hoed).toBe('strik');
     s = reducer(s, { type: 'buy', id: 'strik' });
-    expect(s.save!.stars).toBe(90);
+    expect(s.save!.stars).toBe(485);
+    for (const k of ALL_FACTS.slice(0, 30))
+      s.save!.facts[k] = { box: 5, due: '2026-10-01', fastDays: ['2026-09-20', T], seen: 5, wrong: 0 };
+    s = reducer(s, { type: 'buy', id: 'kroon' });
+    expect(s.save!.owned).toEqual(['strik', 'kroon']);
+    expect(s.save!.stars).toBe(335);
   });
 
   it('wear and unwear', () => {
