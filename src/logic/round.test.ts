@@ -46,6 +46,32 @@ describe('buildRound', () => {
     expect(qs.length).toBeGreaterThan(0);
   });
 
+  it('from the table of 5 on, at most 1 new fact per round and 2 per day', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = st(5, '2026-10-01');
+    for (const k of factsForIsland(1)) facts[k] = st(5, '2026-10-01');
+    const opts = { island: 2, unlocked: [0, 1, 2], today: T, rng: seq() };
+    const fresh = buildRound({ ...opts, facts });
+    expect(new Set(fresh.filter((q) => q.isNew).map((q) => q.key)).size).toBe(1);
+    expect(fresh.length).toBe(10);
+
+    facts['5-5'] = { ...st(2), introduced: T };
+    const later = buildRound({ ...opts, facts });
+    expect(new Set(later.filter((q) => q.isNew).map((q) => q.key)).size).toBe(1);
+
+    facts['4-5'] = { ...st(2), introduced: T };
+    expect(buildRound({ ...opts, facts }).some((q) => q.isNew)).toBe(false);
+  });
+
+  it('the daily limit only counts facts introduced today', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = st(5, '2026-10-01');
+    for (const k of factsForIsland(1)) facts[k] = st(5, '2026-10-01');
+    facts['5-5'] = { ...st(3, '2026-10-01'), introduced: '2026-09-20' };
+    const qs = buildRound({ island: 2, facts, unlocked: [0, 1, 2], today: T, rng: seq() });
+    expect(new Set(qs.filter((q) => q.isNew).map((q) => q.key)).size).toBe(1);
+  });
+
   it('islands 0 and 1 allow more facts in progress before pausing new ones', () => {
     const facts: Record<string, FactState> = {};
     for (const k of factsForIsland(1).slice(0, 6)) facts[k] = st(1);

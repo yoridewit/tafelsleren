@@ -82,6 +82,7 @@ function parseFact(v: unknown): FactState | null {
     seen: num(v.seen, 0),
     wrong: num(v.wrong, 0),
     ...(typeof v.promoted === 'string' ? { promoted: v.promoted } : {}),
+    ...(typeof v.introduced === 'string' ? { introduced: v.introduced } : {}),
   };
 }
 

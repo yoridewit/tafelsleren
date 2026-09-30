@@ -8,6 +8,8 @@ export interface FactState {
   wrong: number;
   /** Dag waarop de som voor het laatst een doos omhoog ging (vanaf box 3 max. één stap per dag). */
   promoted?: string;
+  /** Dag waarop de som voor het eerst geoefend is (om het aantal nieuwe sommen per dag te begrenzen). */
+  introduced?: string;
 }
 
 export const FAST_MS = 5000;
@@ -43,6 +45,7 @@ export function applyAnswer(
   let box: number;
   let fastDays = s.fastDays;
   let promoted = s.promoted;
+  const introduced = s.introduced ?? (s.box === 0 ? today : undefined);
   if (!correct) box = Math.max(1, s.box - 1);
   else if (ms <= fastMs) {
     if (!fastDays.includes(today)) fastDays = [...fastDays, today].slice(-5);
@@ -60,6 +63,7 @@ export function applyAnswer(
     seen: s.seen + 1,
     wrong: s.wrong + (correct ? 0 : 1),
     ...(promoted ? { promoted } : {}),
+    ...(introduced ? { introduced } : {}),
   };
 }
 

@@ -4,6 +4,12 @@ import { applyAnswer, newFactState, isKnown, factStatus, isDue, fastLimitMs } fr
 const T = '2026-09-21';
 
 describe('leitner', () => {
+  it('remembers the day a fact was first practiced', () => {
+    const first = applyAnswer(newFactState(), true, 1000, T);
+    expect(first.introduced).toBe(T);
+    expect(applyAnswer(first, true, 1000, '2026-09-22').introduced).toBe(T);
+  });
+
   it('fast correct on a new fact goes to box 2, due tomorrow', () => {
     const s = applyAnswer(newFactState(), true, 2000, T);
     expect(s.box).toBe(2);
