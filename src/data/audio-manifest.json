@@ -1,6 +1,5 @@
 {
   "voice": "7qdUFMklKPaaAVMsBTBt",
-  "children": {},
   "ids": [
     "album",
     "bijna",
@@ -390,5 +389,15 @@
     "welkom-3",
     "winkel-later",
     "winkel-welkom"
-  ]
+  ],
+  "children": {
+    "lucy": [
+      "home-0",
+      "home-1",
+      "res-goed",
+      "res-knap",
+      "res-top",
+      "welkom-1"
+    ]
+  }
 }
