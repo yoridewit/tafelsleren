@@ -8,7 +8,7 @@ export function TimeChip() {
   const minutes = state.save ? remainingMinutes(state.save, today) : null;
   if (minutes === null) return null;
   return (
-    <span className="chip-stat chip-time" aria-label={`nog ${minutes} minuten speeltijd`} title="speeltijd vandaag">
+    <span className="chip-stat chip-time" aria-label={`nog ${minutes} ${minutes === 1 ? 'minuut' : 'minuten'} speeltijd`} title="speeltijd vandaag">
       <Icon name="clock" />
       {minutes} min
     </span>

@@ -1,9 +1,12 @@
 import { CloudLogin } from '../components/CloudLogin';
 import { useCloud } from '../cloud/CloudProvider';
 import { statusText } from '../cloud/statusText';
+import { useSave } from '../state/store';
+import { accountMismatch } from '../data/profiles';
 
 export function CloudPanel() {
   const cloud = useCloud();
+  const { save } = useSave();
   return (
     <section className="panel">
       <h2>Cloud-opslag</h2>
@@ -18,7 +21,7 @@ export function CloudPanel() {
           Uitloggen
         </button>
       ) : (
-        <CloudLogin />
+        <CloudLogin validate={(e) => accountMismatch(e, save.profileId)} />
       )}
     </section>
   );

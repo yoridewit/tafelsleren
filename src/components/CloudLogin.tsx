@@ -6,11 +6,14 @@ import type { StartOutcome } from '../cloud/sync';
 export function CloudLogin({
   onDone,
   validate,
+  onBusyChange,
   emailPlaceholder = 'E-mailadres van de ouder',
 }: {
   onDone?: (outcome: StartOutcome, email: string) => void;
   /** Geeft een foutmelding terug als dit adres niet mag inloggen; null = goed. Er wordt dan niet ingelogd. */
   validate?: (email: string) => string | null;
+  /** Meldt of er een inlogpoging loopt (niet bij een geweigerd adres). */
+  onBusyChange?: (busy: boolean) => void;
   emailPlaceholder?: string;
 }) {
   const cloud = useCloud();
@@ -26,6 +29,7 @@ export function CloudLogin({
       return;
     }
     setBusy(true);
+    onBusyChange?.(true);
     setError('');
     try {
       const outcome = await cloud.signIn(email.trim(), password);
@@ -38,6 +42,7 @@ export function CloudLogin({
       setError('Inloggen mislukt. Klopt het e-mailadres en wachtwoord, en is er internet?');
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   };
 

@@ -54,6 +54,14 @@ export function profileForEmail(email: string): ChildProfile | null {
   return PROFILES.find((p) => p.email === e) ?? null;
 }
 
+/** Foutmelding als dit e-mailadres niet bij het kind van deze save hoort; null = goed. */
+export function accountMismatch(email: string, saveProfileId: ProfileId): string | null {
+  const p = profileForEmail(email);
+  if (!p) return 'Dit account hoort bij geen kind.';
+  if (p.id !== saveProfileId) return 'Dit account hoort bij een ander kind.';
+  return null;
+}
+
 let active: ChildProfile = FLOOR;
 
 /** Het kind dat nu speelt; tekst (`phraseText`) en audio lezen dit. Idempotent. */

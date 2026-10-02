@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FLOOR, LUCY, PROFILES, limitsFor, activeProfile, profileById, profileForEmail, setActiveProfile } from './profiles';
+import { FLOOR, LUCY, PROFILES, accountMismatch, limitsFor, activeProfile, profileById, profileForEmail, setActiveProfile } from './profiles';
 
 describe('profiles', () => {
   it('maps e-mail addresses to children, ignoring case and spaces', () => {
@@ -42,5 +42,20 @@ describe('profiles', () => {
     expect(limitsFor(LUCY, 2)).toEqual({ perRound: 1, perDay: 2 });
     expect(limitsFor(FLOOR, 1)).toEqual({ perRound: 3, perDay: null });
     expect(limitsFor(FLOOR, 3)).toEqual({ perRound: 1, perDay: 2 });
+  });
+
+  it('accountMismatch accepts the address of the own child of the save, ignoring case and spaces', () => {
+    expect(accountMismatch('yoridewit@pm.me', 'floor')).toBeNull();
+    expect(accountMismatch('  Lucy@Tafels.nl ', 'lucy')).toBeNull();
+  });
+
+  it('accountMismatch refuses the address of the other child', () => {
+    expect(accountMismatch('lucy@tafels.nl', 'floor')).toContain('ander kind');
+    expect(accountMismatch('yoridewit@pm.me', 'lucy')).toContain('ander kind');
+  });
+
+  it('accountMismatch refuses an unknown address', () => {
+    expect(accountMismatch('iemand@anders.nl', 'floor')).toContain('geen kind');
+    expect(accountMismatch('', 'lucy')).toContain('geen kind');
   });
 });

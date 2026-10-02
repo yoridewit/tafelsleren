@@ -15,6 +15,7 @@ export function Welcome() {
   const cloud = useCloud();
   const [elf, setElf] = useState('');
   const [mode, setMode] = useState<'login' | 'setup'>(cloud.configured ? 'login' : 'setup');
+  const [busy, setBusy] = useState(false);
   const [profile, setProfile] = useState<ChildProfile>(activeProfile());
 
   // Het elfje praat pas zodra duidelijk is bij welk kind hij hoort.
@@ -40,6 +41,7 @@ export function Welcome() {
           <CloudLogin
             emailPlaceholder="E-mailadres"
             validate={(email) => (profileForEmail(email) ? null : 'Dit account hoort bij geen kind.')}
+            onBusyChange={setBusy}
             onDone={(outcome, email) => {
               // Bestaat er al voortgang, dan zet de sync die terug en verdwijnt dit scherm vanzelf.
               if (outcome === 'none') {
@@ -48,9 +50,12 @@ export function Welcome() {
               }
             }}
           />
-          <button className="btn btn-white btn-small" onClick={() => choose(FLOOR)}>
-            Zonder account beginnen
-          </button>
+          {/* Niet als er al een account is ingelogd (dat is dan van een ander kind) of er net een login loopt. */}
+          {!cloud.signedIn && (
+            <button className="btn btn-white btn-small" disabled={busy} onClick={() => choose(FLOOR)}>
+              Zonder account beginnen
+            </button>
+          )}
         </div>
       </div>
     );
