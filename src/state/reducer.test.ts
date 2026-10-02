@@ -13,6 +13,12 @@ describe('reducer', () => {
     expect(s.save?.unlocked).toEqual([0]);
   });
 
+  it('setup can start a save for another child', () => {
+    const s = reducer(initialState(null), { type: 'setup', elfName: 'Fleur', profileId: 'lucy' });
+    expect(s.save!.profileId).toBe('lucy');
+    expect(s.save!.unlocked).toEqual([0, 1]);
+  });
+
   it('answer updates the fact state', () => {
     const s = reducer(started(), { type: 'answer', key: '2-3', correct: true, ms: 1500, today: T });
     expect(s.save!.facts['2-3'].box).toBe(2);

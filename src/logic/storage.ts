@@ -1,6 +1,7 @@
-import type { FactKey } from './facts';
-import { ALL_FACTS } from './facts';
-import type { FactState } from './leitner';
+import { FLOOR, profileById, type ChildProfile, type ProfileId } from '../data/profiles';
+import { addDays, dayKey } from './dates';
+import { ALL_FACTS, factsForIsland, type FactKey } from './facts';
+import { newFactState, type FactState } from './leitner';
 import type { ItemSlot } from '../data/shop';
 
 export const STORAGE_KEY = 'tafels-elfje-v1';
@@ -20,6 +21,7 @@ export interface Settings {
 export interface SaveData {
   version: 1;
   elfName: string;
+  profileId: ProfileId;
   facts: Record<FactKey, FactState>;
   stars: number;
   owned: string[];
@@ -39,12 +41,29 @@ export interface SaveData {
   updatedAt: string;
 }
 
-export function emptySave(elfName = ''): SaveData {
+/** Sommen van de opgegeven eilanden die bij de start al gekend zijn (hoogste doos, twee snelle dagen). */
+function knownFacts(islands: number[], today: string): Record<FactKey, FactState> {
+  const facts: Record<FactKey, FactState> = {};
+  for (const i of islands)
+    for (const k of factsForIsland(i))
+      facts[k] = {
+        ...newFactState(),
+        box: 5,
+        due: addDays(today, 7),
+        fastDays: [addDays(today, -1), today],
+        seen: 3,
+      };
+  return facts;
+}
+
+export function emptySave(elfName = '', profile: ChildProfile = FLOOR): SaveData {
   const now = new Date().toISOString();
+  const known = profile.knownIslands;
   return {
     version: 1,
     elfName,
-    facts: {},
+    profileId: profile.id,
+    facts: knownFacts(known, dayKey()),
     stars: 0,
     owned: [],
     wearing: {},
@@ -53,8 +72,9 @@ export function emptySave(elfName = ''): SaveData {
     roundsByDay: {},
     timeByDay: {},
     roundsDone: 0,
-    discovered: [],
-    unlocked: [0],
+    // Gekende eilanden zijn open, plus het eiland erna.
+    discovered: [...known],
+    unlocked: [...new Set([0, ...known, ...known.map((i) => i + 1)])].sort((a, b) => a - b),
     speedRecord: 0,
     settings: { sound: true, speech: true, music: true, musicVolume: 1, voice: null, dailyLimitMinutes: 10 },
     createdAt: now,
@@ -111,6 +131,7 @@ export function parseSave(raw: unknown): SaveData | null {
   return {
     version: 1,
     elfName: str(raw.elfName, ''),
+    profileId: profileById(raw.profileId).id,
     facts,
     stars: Math.max(0, num(raw.stars, 0)),
     owned: strArr(raw.owned),

@@ -4,6 +4,7 @@ import { currentStreak } from '../logic/streak';
 import { ISLANDS, parseFactKey, type FactKey } from '../logic/facts';
 import { emptySave, type SaveData, type Settings } from '../logic/storage';
 import { isUnlocked, itemById, type ItemSlot } from '../data/shop';
+import { profileById, type ProfileId } from '../data/profiles';
 import { earnedStickerIds } from '../data/stickers';
 
 export interface AppState {
@@ -15,7 +16,7 @@ export interface AppState {
 }
 
 export type Action =
-  | { type: 'setup'; elfName: string }
+  | { type: 'setup'; elfName: string; profileId?: ProfileId }
   | { type: 'answer'; key: FactKey; correct: boolean; ms: number; today: string; slip?: boolean }
   | { type: 'tick'; today: string; deltaMs: number }
   | { type: 'finishRound'; correct: number; today: string }
@@ -88,7 +89,7 @@ function afterPlay(state: AppState, save: SaveData, today: string): AppState {
 }
 
 export function reducer(state: AppState, action: Action): AppState {
-  if (action.type === 'setup') return initialState(emptySave(action.elfName));
+  if (action.type === 'setup') return initialState(emptySave(action.elfName, profileById(action.profileId)));
   if (action.type === 'import') return initialState(action.data);
   if (action.type === 'restore') return initialState(action.data);
   if (action.type === 'reset') return initialState(null);

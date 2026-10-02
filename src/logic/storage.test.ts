@@ -1,4 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { profileById } from '../data/profiles';
+import { factsForIsland } from './facts';
+import { isKnown } from './leitner';
+import { computeUnlocks } from './progress';
 import {
   CORRUPT_KEY,
   STORAGE_KEY,
@@ -104,5 +108,33 @@ describe('keepReplaced', () => {
       `${STORAGE_KEY}-replaced-2026-09-02T00:00:00.000Z`,
       `${STORAGE_KEY}-replaced-2026-09-03T00:00:00.000Z`,
     ]);
+  });
+});
+
+describe('profiles in saves', () => {
+  it('emptySave defaults to Floor and starts empty', () => {
+    const s = emptySave('Pip');
+    expect(s.profileId).toBe('floor');
+    expect(s.unlocked).toEqual([0]);
+    expect(s.facts).toEqual({});
+  });
+
+  it('Lucy starts with the tables of 1 and 10 known and the table of 2 open', () => {
+    const s = emptySave('Fleur', profileById('lucy'));
+    expect(s.profileId).toBe('lucy');
+    for (const k of factsForIsland(0)) expect(isKnown(s.facts[k])).toBe(true);
+    expect(Object.keys(s.facts).sort()).toEqual([...factsForIsland(0)].sort());
+    expect(s.unlocked).toEqual([0, 1]);
+    expect(s.discovered).toEqual([0]);
+    // nog niets gedaan vandaag: geen "nieuw geïntroduceerde" sommen die de daglimiet opeten
+    expect(Object.values(s.facts).every((f) => f.introduced === undefined)).toBe(true);
+    // eiland 1 gaat niet automatisch weer dicht en eiland 2 blijft nog dicht
+    expect(computeUnlocks(s.facts, s.unlocked)).toEqual([0, 1]);
+  });
+
+  it('parseSave keeps a valid profileId and defaults the rest to floor', () => {
+    expect(parseSave({ version: 1, profileId: 'lucy' })!.profileId).toBe('lucy');
+    expect(parseSave({ version: 1 })!.profileId).toBe('floor');
+    expect(parseSave({ version: 1, profileId: 'bob' })!.profileId).toBe('floor');
   });
 });
