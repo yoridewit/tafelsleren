@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRound } from './round';
+import { buildRound, defaultLimits } from './round';
 import { factsForIsland } from './facts';
 import { newFactState, type FactState } from './leitner';
 
@@ -130,5 +130,39 @@ describe('buildRound', () => {
       const qs = buildRound({ island: 0, facts, unlocked: [0], today: T, rng: seeded(seed) });
       expect(qs.some((q) => q.key === '1-7'), 'seed ' + seed).toBe(true);
     }
+  });
+
+  it('default limits: 3 per round for the first two islands, then 1 per round and 2 per day', () => {
+    expect(defaultLimits(0)).toEqual({ perRound: 3, perDay: null });
+    expect(defaultLimits(1)).toEqual({ perRound: 3, perDay: null });
+    expect(defaultLimits(2)).toEqual({ perRound: 1, perDay: 2 });
+    expect(defaultLimits(8)).toEqual({ perRound: 1, perDay: 2 });
+  });
+
+  it('custom limits apply: 2 per round and 5 per day on the table of 2', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = st(5, '2026-10-01');
+    const opts = { island: 1, unlocked: [0, 1], today: T, rng: seq(), limits: { perRound: 2, perDay: 5 } };
+    const newKeys = (f: Record<string, FactState>) =>
+      new Set(buildRound({ ...opts, facts: f }).filter((q) => q.isNew).map((q) => q.key)).size;
+    expect(newKeys(facts)).toBe(2);
+
+    const day = { ...facts };
+    for (const k of ['2-2', '2-3', '2-4'] as const) day[k] = { ...st(3, '2026-10-01'), introduced: T };
+    expect(newKeys(day)).toBe(2);
+    day['2-5'] = { ...st(3, '2026-10-01'), introduced: T };
+    expect(newKeys(day)).toBe(1);
+    day['2-6'] = { ...st(3, '2026-10-01'), introduced: T };
+    expect(newKeys(day)).toBe(0);
+  });
+
+  it('without a daily limit only the per-round limit applies', () => {
+    const facts: Record<string, FactState> = {};
+    for (const k of factsForIsland(0)) facts[k] = st(5, '2026-10-01');
+    facts['2-2'] = { ...st(3, '2026-10-01'), introduced: T };
+    facts['2-3'] = { ...st(3, '2026-10-01'), introduced: T };
+    facts['2-4'] = { ...st(3, '2026-10-01'), introduced: T };
+    const qs = buildRound({ island: 1, facts, unlocked: [0, 1], today: T, rng: seq(), limits: { perRound: 3, perDay: null } });
+    expect(new Set(qs.filter((q) => q.isNew).map((q) => q.key)).size).toBe(3);
   });
 });

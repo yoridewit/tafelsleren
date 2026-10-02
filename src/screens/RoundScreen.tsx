@@ -11,6 +11,7 @@ import { roundReward } from '../state/reducer';
 import { useSave } from '../state/store';
 import { say, sayHint, sayPraise, sayQuestion, sound } from '../audio';
 import { factId } from '../data/phrases';
+import { limitsFor, profileById } from '../data/profiles';
 import { PRAISE } from '../data/phrases';
 import type { Go } from '../nav';
 
@@ -20,7 +21,7 @@ type Phase = 'intro' | 'ask' | 'right' | 'wrong';
 export function RoundScreen({ island, go }: { island: number; go: Go }) {
   const { save, dispatch, today } = useSave();
   const [queue, setQueue] = useState<Question[]>(() =>
-    buildRound({ island, facts: save.facts, unlocked: save.unlocked, today }),
+    buildRound({ island, facts: save.facts, unlocked: save.unlocked, today, limits: limitsFor(profileById(save.profileId), island) }),
   );
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('ask');

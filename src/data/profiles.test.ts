@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FLOOR, PROFILES, activeProfile, profileById, profileForEmail, setActiveProfile } from './profiles';
+import { FLOOR, LUCY, PROFILES, limitsFor, activeProfile, profileById, profileForEmail, setActiveProfile } from './profiles';
 
 describe('profiles', () => {
   it('maps e-mail addresses to children, ignoring case and spaces', () => {
@@ -35,5 +35,12 @@ describe('profiles', () => {
     setActiveProfile(profileById('lucy'));
     expect(activeProfile().id).toBe('lucy');
     setActiveProfile(FLOOR);
+  });
+
+  it('limitsFor uses the profile override or the default', () => {
+    expect(limitsFor(LUCY, 1)).toEqual({ perRound: 2, perDay: 5 });
+    expect(limitsFor(LUCY, 2)).toEqual({ perRound: 1, perDay: 2 });
+    expect(limitsFor(FLOOR, 1)).toEqual({ perRound: 3, perDay: null });
+    expect(limitsFor(FLOOR, 3)).toEqual({ perRound: 1, perDay: 2 });
   });
 });

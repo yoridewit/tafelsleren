@@ -1,14 +1,12 @@
+import { defaultLimits, type IslandLimits } from '../logic/round';
+
+export type { IslandLimits };
+
 /**
  * De kinderen die de app gebruiken. Elk kind heeft een eigen apparaat en een eigen account (e-mailadres);
  * dat adres bepaalt het profiel. Een nieuw kind toevoegen = hier een profiel bijzetten.
  */
 export type ProfileId = 'floor' | 'lucy';
-
-/** Hoeveel nieuwe sommen er per ronde en per dag mogen bijkomen (perDay null = geen daglimiet). */
-export interface IslandLimits {
-  perRound: number;
-  perDay: number | null;
-}
 
 export interface ChildProfile {
   id: ProfileId;
@@ -65,4 +63,8 @@ export function setActiveProfile(p: ChildProfile) {
 
 export function activeProfile(): ChildProfile {
   return active;
+}
+
+export function limitsFor(profile: ChildProfile, island: number): IslandLimits {
+  return profile.newFacts[island] ?? defaultLimits(island);
 }

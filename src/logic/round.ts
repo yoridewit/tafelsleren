@@ -15,6 +15,7 @@ export interface RoundOptions {
   today: string;
   rng?: () => number;
   size?: number;
+  limits?: IslandLimits;
 }
 
 /**
@@ -25,10 +26,16 @@ export interface RoundOptions {
 const DEFAULT_LEARNING_CAP = 6;
 const LEARNING_CAP: Partial<Record<number, number>> = { 0: 9, 1: 9 };
 
-/** Vanaf dit eiland (tafel van 5) zijn nieuwe sommen lastiger en geldt een daglimiet. */
-const HARD_FROM_ISLAND = 2;
-const NEW_PER_ROUND = 1;
-const NEW_PER_DAY = 2;
+/** Hoeveel nieuwe sommen er per ronde en per dag bij mogen komen (perDay null = geen daglimiet). */
+export interface IslandLimits {
+  perRound: number;
+  perDay: number | null;
+}
+
+/** Eiland 0 en 1 zijn makkelijk (3 per ronde); vanaf de tafel van 5 zijn nieuwe sommen lastiger: 1 per ronde, 2 per dag. */
+export function defaultLimits(island: number): IslandLimits {
+  return island >= 2 ? { perRound: 1, perDay: 2 } : { perRound: 3, perDay: null };
+}
 
 export function learningCapForIsland(island: number): number {
   return LEARNING_CAP[island] ?? DEFAULT_LEARNING_CAP;
@@ -47,18 +54,18 @@ export function shuffle<T>(xs: T[], rng: () => number = Math.random): T[] {
  * Stelt een ronde samen: een paar nieuwe sommen (elk 2×, met ruimte ertussen),
  * aangevuld met sommen die aan de beurt zijn voor herhaling en bekende sommen.
  */
-export function buildRound({ island, facts, unlocked, today, rng = Math.random, size = 10 }: RoundOptions): Question[] {
+export function buildRound({ island, facts, unlocked, today, rng = Math.random, size = 10, limits = defaultLimits(island) }: RoundOptions): Question[] {
   const tables = ISLANDS[island].tables;
   const islandFacts = factsForIsland(island);
   const learning = islandFacts.filter((k) => facts[k] && facts[k].box >= 1 && facts[k].box <= 2).length;
   const practicedAny = Object.values(facts).some((s) => s.box > 0);
   const cap = learningCapForIsland(island);
-  const perRound = !practicedAny ? 4 : 3;
-  let maxNew = learning >= cap ? 0 : learning >= cap - 2 ? 1 : perRound;
-  if (island >= HARD_FROM_ISLAND) {
-    // Vanaf de tafel van 5 zijn nieuwe sommen lastiger: maximaal 1 nieuwe som per ronde en 2 per dag.
+  // De allereerste ronde (nog niets geoefend) mag er 4 hebben; daarna geldt de limiet per ronde.
+  const perRound = practicedAny ? limits.perRound : Math.max(limits.perRound, 4);
+  let maxNew = Math.min(learning >= cap ? 0 : learning >= cap - 2 ? 1 : perRound, perRound);
+  if (limits.perDay !== null) {
     const introducedToday = Object.values(facts).filter((s) => s.introduced === today).length;
-    maxNew = Math.min(maxNew, NEW_PER_ROUND, Math.max(0, NEW_PER_DAY - introducedToday));
+    maxNew = Math.min(maxNew, Math.max(0, limits.perDay - introducedToday));
   }
   const newKeys = introOrderForIsland(island)
     .filter((k) => factStatus(facts[k]) === 'nieuw')
