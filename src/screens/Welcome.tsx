@@ -3,7 +3,7 @@ import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { useStore } from '../state/store';
 import { say, sound } from '../audio';
-import { CHILD_NAME } from '../data/phrases';
+import { activeProfile } from '../data/profiles';
 import { CloudLogin } from '../components/CloudLogin';
 import { MathGate } from '../components/MathGate';
 import { TopBar } from '../components/TopBar';
@@ -51,7 +51,7 @@ export function Welcome() {
         <Elf size={160} mood="juichen" className="float" />
       </div>
       <div className="card welcome-card">
-        <h1>Hoi {CHILD_NAME}!</h1>
+        <h1>Hoi {activeProfile().name}!</h1>
         <p className="big">
           Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij
           kiezen?

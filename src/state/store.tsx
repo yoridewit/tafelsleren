@@ -3,6 +3,7 @@ import { stampedReducer, initialState, type Action, type AppState } from './redu
 import { loadSave, persistTransition, type SaveData } from '../logic/storage';
 import { dayKey } from '../logic/dates';
 import { onTalking, setAudioPrefs, setPreferredVoice } from '../audio';
+import { profileById, setActiveProfile } from '../data/profiles';
 import { duckMusic, setMusicEnabled, setMusicVolume } from '../music';
 
 onTalking(duckMusic);
@@ -53,6 +54,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   setPreferredVoice(settings?.voice ?? null);
   setMusicEnabled(settings?.music ?? true);
   setMusicVolume(settings?.musicVolume ?? 1);
+  // Tekst en audio lezen het actieve profiel; zonder save blijft staan wat het welkomstscherm koos.
+  if (state.save) setActiveProfile(profileById(state.save.profileId));
 
   return <StoreContext.Provider value={{ state, dispatch, today: dayKey() }}>{children}</StoreContext.Provider>;
 }

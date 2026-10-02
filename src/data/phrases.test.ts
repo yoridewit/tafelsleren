@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { PHRASES, factId, hintId, phraseText, questionId, sharedText, spoken, stickerId } from './phrases';
+import {
+  PHRASES,
+  factId,
+  hintId,
+  nameLineIds,
+  phraseText,
+  questionId,
+  sharedText,
+  spoken,
+  spokenText,
+  stickerId,
+} from './phrases';
+import { FLOOR, profileById, setActiveProfile } from './profiles';
 import { STICKERS } from './stickers';
 
 describe('phrases', () => {
@@ -22,10 +34,19 @@ describe('phrases', () => {
     for (const s of STICKERS) expect(PHRASES[stickerId(s.id)]).toContain(s.name);
   });
 
-  it('greets Floor by name', () => {
+  it('greets the active child by name', () => {
     expect(phraseText('home-0')).toBe('Hoi Floor! Zullen we samen oefenen?');
     expect(phraseText('welkom-1')).toMatch(/^Hoi Floor!/);
+    setActiveProfile(profileById('lucy'));
+    expect(phraseText('home-0')).toBe('Hoi Lucy! Zullen we samen oefenen?');
+    expect(spokenText('home-0')).toBe('Hoi Lusie! Zullen we samen oefenen?');
+    expect(spokenText('home-0', FLOOR)).toBe('Hoi Floor! Zullen we samen oefenen?');
+    setActiveProfile(FLOOR);
     expect(Object.keys(PHRASES).some((id) => id.endsWith('.n'))).toBe(false);
+  });
+
+  it('exactly six lines contain the child’s name', () => {
+    expect(nameLineIds().sort()).toEqual(['home-0', 'home-1', 'res-goed', 'res-knap', 'res-top', 'welkom-1']);
   });
 
   it('shared-facts text handles one new fact', () => {

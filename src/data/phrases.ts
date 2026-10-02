@@ -6,9 +6,7 @@
 import { hintFor } from '../logic/hints';
 import { ISLANDS } from '../logic/facts';
 import { STICKERS } from './stickers';
-
-/** De app is voor één kind gemaakt. */
-export const CHILD_NAME = 'Floor';
+import { activeProfile, type ChildProfile } from './profiles';
 
 export const PRAISE = ['Goed zo!', 'Super!', 'Knap hoor!', 'Toppie!', 'Jippie!', 'Wauw!', 'Heel goed!'];
 
@@ -56,12 +54,12 @@ Object.assign(LINES, {
   test: 'Hoi! Zeven keer zes is tweeënveertig. Goed zo!',
 
   // welkom
-  'welkom-1': `Hoi ${CHILD_NAME}! Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij kiezen?`,
+  'welkom-1': 'Hoi {naam}! Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij kiezen?',
   'welkom-3': 'Joepie! Laten we beginnen!',
 
   // kaart
-  'home-0': `Hoi ${CHILD_NAME}! Zullen we samen oefenen?`,
-  'home-1': `Goed bezig, ${CHILD_NAME}! Nog één rondje?`,
+  'home-0': 'Hoi {naam}! Zullen we samen oefenen?',
+  'home-1': 'Goed bezig, {naam}! Nog één rondje?',
   'home-2': 'Super! Genoeg geoefend vandaag. Morgen weer?',
 
   // eiland
@@ -74,9 +72,9 @@ Object.assign(LINES, {
   stoppen: 'Wil je stoppen met deze ronde?',
 
   // resultaat
-  'res-top': `Fantastisch, ${CHILD_NAME}!`,
-  'res-goed': `Goed gedaan, ${CHILD_NAME}!`,
-  'res-knap': `Knap geoefend, ${CHILD_NAME}!`,
+  'res-top': 'Fantastisch, {naam}!',
+  'res-goed': 'Goed gedaan, {naam}!',
+  'res-knap': 'Knap geoefend, {naam}!',
   'res-moeilijk': 'Moeilijke sommen komen vaker terug. Zo leer je ze vanzelf!',
   'res-genoeg': 'Je hebt vandaag al heel wat rondes gedaan. Wat knap! Je hersenen onthouden het beste als je morgen weer even oefent.',
   'res-tijd-op': 'Je speeltijd voor vandaag zit erop. Wat heb je goed geoefend! Morgen mag je weer verder.',
@@ -108,10 +106,24 @@ for (const s of STICKERS) LINES[stickerId(s.id)] = `Je hebt een nieuwe sticker v
 
 export { discoverTip };
 
-/** Tekst van een zin. */
+const NAME = '{naam}';
+
+const fill = (text: string, name: string) => text.split(NAME).join(name);
+
+/** Tekst van een zin, met de naam van het kind dat nu speelt. */
 export function phraseText(id: string): string {
-  return LINES[id] ?? '';
+  return fill(LINES[id] ?? '', activeProfile().name);
 }
 
-/** Alle zinnen, op id. */
+/** Wat hardop gezegd wordt: de naam in zijn uitspraak ("Lusie"). */
+export function spokenText(id: string, profile: ChildProfile = activeProfile()): string {
+  return fill(LINES[id] ?? '', profile.spokenName);
+}
+
+/** Ids van zinnen waarin de naam van het kind voorkomt (die per kind opnieuw opgenomen worden). */
+export function nameLineIds(): string[] {
+  return Object.keys(LINES).filter((id) => LINES[id].includes(NAME));
+}
+
+/** Alle zinnen, op id: de sjablonen, met {naam} waar de naam van het kind komt. */
 export const PHRASES: Record<string, string> = { ...LINES };

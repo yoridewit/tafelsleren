@@ -8,13 +8,15 @@
  *   npm run audio -- --voices              # toon de stemmen in je account
  *   npm run audio -- --only=id --takes=3   # 3 versies met meer/minder expressie naar audio-takes/ om te kiezen
  *   npm run audio -- --only=id --force --stability=0.35 --style=0.6   # met eigen stemgevoel
+ *   npm run audio -- --child=lucy   # alleen de zinnen met de naam van dat kind, in public/audio/lucy/
  *
  * Optioneel in .env.local: ELEVENLABS_VOICE_ID (standaard: Sarah), ELEVENLABS_MODEL
  * (standaard: eleven_multilingual_v2).
  */
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PHRASES } from '../src/data/phrases';
+import { PHRASES, nameLineIds, spokenText } from '../src/data/phrases';
+import { FLOOR, PROFILES } from '../src/data/profiles';
 
 const API = 'https://api.elevenlabs.io/v1';
 const OUT_DIR = join(import.meta.dirname, '..', 'public', 'audio');
@@ -36,6 +38,9 @@ const force = args.includes('--force');
 const only = args.find((a) => a.startsWith('--only='))?.slice(7).split(',');
 const arg = (name: string) => args.find((a) => a.startsWith(`--${name}=`))?.split('=')[1];
 const takes = Number(arg('takes') ?? 0);
+const childArg = arg('child');
+const child = childArg ? PROFILES.find((p) => p.id === childArg) : undefined;
+if (childArg && !child) throw new Error(`Onbekend kind: ${childArg}. Kies uit ${PROFILES.map((p) => p.id).join(', ')}`);
 
 /**
  * Met de hand gekozen opnames (uit --takes, soms met een ander model of andere tekst).
@@ -99,7 +104,18 @@ function writeManifest() {
     .map((f) => f.slice(0, -4))
     .filter((id) => id in PHRASES)
     .sort();
-  writeFileSync(MANIFEST, JSON.stringify({ voice: voiceId, ids }, null, 2) + '\n');
+  const children: Record<string, string[]> = {};
+  for (const p of PROFILES) {
+    if (!p.audioDir) continue;
+    const dir = join(OUT_DIR, p.audioDir);
+    if (!existsSync(dir)) continue;
+    children[p.id] = readdirSync(dir)
+      .filter((f) => f.endsWith('.mp3'))
+      .map((f) => f.slice(0, -4))
+      .filter((id) => nameLineIds().includes(id))
+      .sort();
+  }
+  writeFileSync(MANIFEST, JSON.stringify({ voice: voiceId, ids, children }, null, 2) + '\n');
   return ids.length;
 }
 
@@ -114,7 +130,7 @@ async function main() {
     for (const id of only)
       for (let t = 0; t < Math.min(takes, TAKE_SETTINGS.length); t++) {
         const file = join(dir, `${id}-${t + 1}.mp3`);
-        const text = arg('text') ?? PHRASES[id];
+        const text = arg('text') ?? spokenText(id, child ?? FLOOR);
         // v3 kent alleen stability 0 (creatief), 0.5 (natuurlijk) en 1 (strak).
         const settings = modelArg === 'eleven_v3' ? { stability: [0, 0.5, 0][t], style: 0 } : TAKE_SETTINGS[t];
         writeFileSync(file, await tts(text, settings));
@@ -122,11 +138,15 @@ async function main() {
       }
     return;
   }
-  mkdirSync(OUT_DIR, { recursive: true });
-  const todo = Object.entries(PHRASES).filter(
-    ([id]) =>
-      (only ? only.includes(id) : !HANDPICKED.has(id)) && (force || !existsSync(join(OUT_DIR, `${id}.mp3`))),
-  );
+  const outDir = child?.audioDir ? join(OUT_DIR, child.audioDir) : OUT_DIR;
+  mkdirSync(outDir, { recursive: true });
+  const ids = child ? nameLineIds() : Object.keys(PHRASES);
+  const todo = ids
+    .map((id): [string, string] => [id, spokenText(id, child ?? FLOOR)])
+    .filter(
+      ([id]) =>
+        (only ? only.includes(id) : child || !HANDPICKED.has(id)) && (force || !existsSync(join(outDir, `${id}.mp3`))),
+    );
   const chars = todo.reduce((n, [, t]) => n + t.length, 0);
   console.log(`${todo.length} zinnen (${chars} tekens) met stem ${voiceId}, model ${model}`);
   // Twee tegelijk: snel genoeg, en binnen de limiet van het gratis plan.
@@ -135,7 +155,7 @@ async function main() {
     [0, 1].map(async () => {
       for (let item = queue.shift(); item; item = queue.shift()) {
         const [id, text] = item;
-        writeFileSync(join(OUT_DIR, `${id}.mp3`), await tts(text));
+        writeFileSync(join(outDir, `${id}.mp3`), await tts(text));
         done++;
         process.stdout.write(`\r${done}/${todo.length} ${id.padEnd(10)}`);
       }

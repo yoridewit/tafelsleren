@@ -37,6 +37,8 @@ De app leest sommen, uitleg en complimentjes voor met ingesproken mp3's uit `pub
 4. Tevreden? Maak de rest: `npm run audio` (ongeveer 390 zinnen, ruim 15.000 tekens). Let op: stemmen uit de Voice Library werken via de API alleen met een betaald plan.
 5. Commit en push `public/audio/` en `src/data/audio-manifest.json`.
 
+Een kind met een andere naam (zoals Lucy, uitgesproken als "Lusie")? Draai `npm run audio -- --child=lucy`; dat spreekt alleen de zes zinnen met de naam in en zet ze in `public/audio/lucy/`. Commit ook die map en `src/data/audio-manifest.json`.
+
 Andere stem gekozen? Draai `npm run audio -- --force` om alles opnieuw in te spreken.
 
 ## Menumuziek

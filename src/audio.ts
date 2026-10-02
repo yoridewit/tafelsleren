@@ -1,5 +1,7 @@
 import manifestJson from './data/audio-manifest.json';
-import { factId, hintId, phraseText, praiseId, questionId } from './data/phrases';
+import { factId, hintId, praiseId, questionId, spokenText } from './data/phrases';
+import { activeProfile } from './data/profiles';
+import { recordingFile, type AudioManifest } from './logic/recordings';
 
 let ctx: AudioContext | null = null;
 let soundOn = true;
@@ -137,7 +139,7 @@ export function speak(text: string, force = false) {
 
 /* ---------- ingesproken zinnen (ElevenLabs, zie scripts/generate-audio.ts) ---------- */
 
-const manifest = manifestJson as { voice: string | null; ids: string[] };
+const manifest = manifestJson as AudioManifest;
 const recorded = new Set<string>(manifest.ids);
 const buffers = new Map<string, Promise<AudioBuffer>>();
 let current: AudioBufferSourceNode | null = null;
@@ -181,7 +183,7 @@ function stopTalking() {
 }
 
 function recordingFor(id: string): string | null {
-  return recorded.has(id) ? id : null;
+  return recordingFile(id, activeProfile(), manifest);
 }
 
 function speakAndWait(text: string): Promise<void> {
@@ -218,7 +220,7 @@ async function playOne(id: string, token: number) {
       // geen opname beschikbaar: dan de stem van het apparaat
     }
   }
-  if (token === playToken) await speakAndWait(phraseText(id));
+  if (token === playToken) await speakAndWait(spokenText(id));
 }
 
 /**
