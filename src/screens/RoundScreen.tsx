@@ -127,6 +127,7 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
   return (
     <div className="screen round" style={{ ['--c' as string]: ISLANDS[island].color }}>
       <TopBar
+        timer={false}
         onBack={() => {
           setQuit(true);
           say('stoppen');

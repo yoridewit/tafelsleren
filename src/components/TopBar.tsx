@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icon } from './Icon';
+import { TimeChip } from './TimeChip';
 
 interface Props {
   onBack?: () => void;
@@ -8,6 +9,7 @@ interface Props {
   stars?: number;
   left?: ReactNode;
   right?: ReactNode;
+  timer?: boolean;
 }
 
 export function StarChip({ stars }: { stars: number }) {
@@ -19,7 +21,7 @@ export function StarChip({ stars }: { stars: number }) {
   );
 }
 
-export function TopBar({ onBack, backIcon = 'back', title, stars, left, right }: Props) {
+export function TopBar({ onBack, backIcon = 'back', title, stars, left, right, timer = true }: Props) {
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -28,6 +30,7 @@ export function TopBar({ onBack, backIcon = 'back', title, stars, left, right }:
             <Icon name={backIcon} size={26} />
           </button>
         )}
+        {timer && <TimeChip />}
         {left}
       </div>
       <h1 className="topbar-title">{title}</h1>

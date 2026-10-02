@@ -135,7 +135,7 @@ describe('reducer', () => {
       music: true,
       musicVolume: 1,
       voice: null,
-      dailyLimitMinutes: null,
+      dailyLimitMinutes: 10,
     });
     s = reducer(s, { type: 'discovered', island: 2 });
     s = reducer(s, { type: 'discovered', island: 2 });

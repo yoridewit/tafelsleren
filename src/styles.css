@@ -316,6 +316,21 @@ h3 {
 .chip-streak .icon {
   color: var(--orange);
 }
+.chip-time {
+  height: 40px;
+  font-size: 1rem;
+  padding: 0 12px 0 10px;
+}
+.chip-time .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--violet);
+}
+.result-timer {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
 
 /* ---------- elfje ---------- */
 .elf {
@@ -1297,6 +1312,7 @@ h3 {
 
 /* ---------- resultaat ---------- */
 .result {
+  position: relative;
   align-items: center;
   justify-content: center;
 }

@@ -77,7 +77,7 @@ export function SpeedGame({ go }: { go: Go }) {
 
   return (
     <div className="screen speed">
-      <TopBar onBack={() => go({ name: 'home' })} title="Snelspel" stars={save.stars} />
+      <TopBar timer={false} onBack={() => go({ name: 'home' })} title="Snelspel" stars={save.stars} />
       {phase === 'start' && (
         <div className="card center-card">
           <div className="elf-stage">

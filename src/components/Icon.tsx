@@ -95,6 +95,12 @@ const PATHS: Record<string, ReactElement> = {
       <path d="M5 20a7 7 0 0 1 14 0" />
     </>
   ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
 };
 
 export type IconName = keyof typeof PATHS;

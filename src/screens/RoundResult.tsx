@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { Celebration } from '../components/Celebration';
+import { TimeChip } from '../components/TimeChip';
 import { useSave } from '../state/store';
 import { roundBreakdown } from '../state/reducer';
 import { say, sound } from '../audio';
@@ -38,6 +39,9 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
 
   return (
     <div className="screen result">
+      <div className="result-timer">
+        <TimeChip />
+      </div>
       <div className="result-card card">
         <div className="elf-stage">
           <Elf wearing={save.wearing} mood="juichen" size={170} className="bounce" />

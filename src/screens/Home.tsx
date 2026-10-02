@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { StarChip } from '../components/TopBar';
+import { TimeChip } from '../components/TimeChip';
 import { ISLANDS } from '../logic/facts';
 import { islandProgress, strongFacts } from '../logic/progress';
 import { currentStreak } from '../logic/streak';
@@ -44,6 +45,7 @@ export function Home({ go }: { go: Go }) {
             <Icon name="flame" />
             {streak}
           </span>
+          <TimeChip />
         </div>
         <h1 className="topbar-title">Het Toverbos</h1>
         <div className="topbar-right">

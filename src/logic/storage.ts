@@ -56,7 +56,7 @@ export function emptySave(elfName = ''): SaveData {
     discovered: [],
     unlocked: [0],
     speedRecord: 0,
-    settings: { sound: true, speech: true, music: true, musicVolume: 1, voice: null, dailyLimitMinutes: null },
+    settings: { sound: true, speech: true, music: true, musicVolume: 1, voice: null, dailyLimitMinutes: 10 },
     createdAt: now,
     updatedAt: now,
   };
