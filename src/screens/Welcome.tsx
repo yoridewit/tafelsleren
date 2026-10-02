@@ -3,42 +3,53 @@ import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { useStore } from '../state/store';
 import { say, sound } from '../audio';
-import { activeProfile } from '../data/profiles';
+import { FLOOR, activeProfile, profileForEmail, setActiveProfile, type ChildProfile } from '../data/profiles';
 import { CloudLogin } from '../components/CloudLogin';
-import { MathGate } from '../components/MathGate';
-import { TopBar } from '../components/TopBar';
 import { useCloud } from '../cloud/CloudProvider';
 
 const ELF_NAMES = ['Pip', 'Fleur', 'Lila', 'Sprankel', 'Juul', 'Tinka'];
 
+/** Eerste scherm op een apparaat zonder save: inloggen (of zonder account beginnen) en dan het elfje een naam geven. */
 export function Welcome() {
   const { dispatch } = useStore();
   const cloud = useCloud();
   const [elf, setElf] = useState('');
-  const [mode, setMode] = useState<'setup' | 'gate' | 'restore'>('setup');
-  const [notFound, setNotFound] = useState(false);
+  const [mode, setMode] = useState<'login' | 'setup'>(cloud.configured ? 'login' : 'setup');
+  const [profile, setProfile] = useState<ChildProfile>(activeProfile());
 
-  useEffect(() => say('welkom-1'), []);
+  // Het elfje praat pas zodra duidelijk is bij welk kind hij hoort.
+  useEffect(() => {
+    if (mode === 'setup') say('welkom-1');
+  }, [mode]);
 
-  if (mode === 'gate') {
-    return (
-      <div className="screen gate">
-        <TopBar onBack={() => setMode('setup')} title="Voor ouders" />
-        <MathGate onPass={() => setMode('restore')} />
-      </div>
-    );
-  }
+  const choose = (p: ChildProfile) => {
+    setActiveProfile(p);
+    setProfile(p);
+    setMode('setup');
+  };
 
-  if (mode === 'restore') {
+  if (mode === 'login') {
     return (
       <div className="screen welcome">
+        <div className="elf-stage">
+          <Elf size={160} mood="juichen" className="float" />
+        </div>
         <div className="card welcome-card">
-          <h1>Voortgang herstellen</h1>
-          <p className="big">Log in met het e-mailadres van de ouder om de opgeslagen voortgang terug te halen.</p>
-          <CloudLogin onDone={(outcome) => setNotFound(outcome === 'none')} />
-          {notFound && <p className="note">Geen opgeslagen voortgang gevonden voor dit account.</p>}
-          <button className="btn btn-white btn-small" onClick={() => setMode('setup')}>
-            Terug
+          <h1>Welkom!</h1>
+          <p className="big">Log in om verder te spelen.</p>
+          <CloudLogin
+            emailPlaceholder="E-mailadres"
+            validate={(email) => (profileForEmail(email) ? null : 'Dit account hoort bij geen kind.')}
+            onDone={(outcome, email) => {
+              // Bestaat er al voortgang, dan zet de sync die terug en verdwijnt dit scherm vanzelf.
+              if (outcome === 'none') {
+                const p = profileForEmail(email);
+                if (p) choose(p);
+              }
+            }}
+          />
+          <button className="btn btn-white btn-small" onClick={() => choose(FLOOR)}>
+            Zonder account beginnen
           </button>
         </div>
       </div>
@@ -51,7 +62,7 @@ export function Welcome() {
         <Elf size={160} mood="juichen" className="float" />
       </div>
       <div className="card welcome-card">
-        <h1>Hoi {activeProfile().name}!</h1>
+        <h1>Hoi {profile.name}!</h1>
         <p className="big">
           Ik ben een elfje, en samen gaan we de tafels leren. Maar eerst: ik heb nog geen naam. Wil jij er een voor mij
           kiezen?
@@ -75,17 +86,12 @@ export function Welcome() {
           disabled={!elf.trim()}
           onClick={() => {
             sound.fanfare();
-            dispatch({ type: 'setup', elfName: elf.trim() });
+            dispatch({ type: 'setup', elfName: elf.trim(), profileId: profile.id });
           }}
         >
           Beginnen
           <Icon name="play" />
         </button>
-        {cloud.configured && !cloud.signedIn && (
-          <button className="btn btn-white btn-small" onClick={() => setMode('gate')}>
-            Ouder? Voortgang herstellen
-          </button>
-        )}
       </div>
     </div>
   );

@@ -3,7 +3,16 @@ import { useCloud } from '../cloud/CloudProvider';
 import type { StartOutcome } from '../cloud/sync';
 
 /** E-mail en wachtwoord van het ouderaccount (aangemaakt in de Firebase-console). */
-export function CloudLogin({ onDone }: { onDone?: (outcome: StartOutcome) => void }) {
+export function CloudLogin({
+  onDone,
+  validate,
+  emailPlaceholder = 'E-mailadres van de ouder',
+}: {
+  onDone?: (outcome: StartOutcome, email: string) => void;
+  /** Geeft een foutmelding terug als dit adres niet mag inloggen; null = goed. Er wordt dan niet ingelogd. */
+  validate?: (email: string) => string | null;
+  emailPlaceholder?: string;
+}) {
   const cloud = useCloud();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +20,11 @@ export function CloudLogin({ onDone }: { onDone?: (outcome: StartOutcome) => voi
   const [error, setError] = useState('');
 
   const submit = async () => {
+    const invalid = validate?.(email.trim());
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -19,7 +33,7 @@ export function CloudLogin({ onDone }: { onDone?: (outcome: StartOutcome) => voi
         setError('Ingelogd, maar de voortgang ophalen lukte niet. Het wordt zo nog eens geprobeerd.');
         return;
       }
-      onDone?.(outcome);
+      onDone?.(outcome, email.trim());
     } catch {
       setError('Inloggen mislukt. Klopt het e-mailadres en wachtwoord, en is er internet?');
     } finally {
@@ -41,7 +55,7 @@ export function CloudLogin({ onDone }: { onDone?: (outcome: StartOutcome) => voi
         autoComplete="username"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="E-mailadres van de ouder"
+        placeholder={emailPlaceholder}
         aria-label="e-mailadres"
         disabled={busy}
       />
