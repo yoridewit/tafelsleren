@@ -1065,19 +1065,6 @@ h3 {
   color: var(--st-gekend-fg);
   animation: pop 0.3s var(--ease);
 }
-.star-plus {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 1.3rem;
-  color: #c98a00;
-  background: var(--gold-soft);
-  border-radius: 999px;
-  padding: 4px 12px 4px 8px;
-}
-.star-plus .icon {
-  color: var(--gold);
-}
 .feedback-wrong {
   display: flex;
   flex-direction: column;
@@ -1365,6 +1352,12 @@ h3 {
 }
 .score-tile.gold .icon {
   color: var(--gold);
+}
+.star-sum {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--ink-soft, var(--ink));
+  margin: 0;
 }
 
 /* ---------- winkel ---------- */

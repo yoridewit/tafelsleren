@@ -32,12 +32,29 @@ export type Action =
   | { type: 'reset' }
   | { type: 'clearCelebrations' };
 
-export const STARS = { perCorrect: 1, roundDone: 3, firstRoundOfDay: 5, fullRoundsPerDay: 3 };
+export const STARS = { perCorrect: 1, roundDone: 6, firstRoundOfDay: 5, fullRoundsPerDay: 3 };
 
-/** Sterren voor een ronde; vanaf de vierde ronde van de dag nog een kwart (kort en vaak, niet eindeloos). */
+export interface RoundBreakdown {
+  correctStars: number;
+  roundBonus: number;
+  firstRoundBonus: number;
+  /** Vanaf de vierde ronde van de dag krijgt het kind nog een kwart (kort en vaak, niet eindeloos). */
+  reduced: boolean;
+  total: number;
+}
+
+export function roundBreakdown(correct: number, roundsBefore: number): RoundBreakdown {
+  const correctStars = correct * STARS.perCorrect;
+  const roundBonus = STARS.roundDone;
+  const firstRoundBonus = roundsBefore === 0 ? STARS.firstRoundOfDay : 0;
+  const full = correctStars + roundBonus + firstRoundBonus;
+  const reduced = roundsBefore >= STARS.fullRoundsPerDay;
+  return { correctStars, roundBonus, firstRoundBonus, reduced, total: reduced ? Math.ceil(full / 4) : full };
+}
+
+/** Sterren voor een ronde; zie `roundBreakdown`. */
 export function roundReward(correct: number, roundsBefore: number): number {
-  const full = correct * STARS.perCorrect + STARS.roundDone + (roundsBefore === 0 ? STARS.firstRoundOfDay : 0);
-  return roundsBefore >= STARS.fullRoundsPerDay ? Math.ceil(full / 4) : full;
+  return roundBreakdown(correct, roundsBefore).total;
 }
 
 export function speedReward(score: number): number {

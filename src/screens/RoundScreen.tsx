@@ -184,10 +184,6 @@ export function RoundScreen({ island, go }: { island: number; go: Go }) {
               <div className="feedback-right">
                 <Elf wearing={save.wearing} mood="juichen" size={120} />
                 <span>{praise}</span>
-                <span className="star-plus">
-                  <Icon name="star" size={20} />
-                  +1
-                </span>
               </div>
             )}
             {phase === 'wrong' && (

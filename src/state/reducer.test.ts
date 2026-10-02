@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reducer, initialState, roundReward, stampedReducer, type Action, type AppState } from './reducer';
+import { reducer, initialState, roundBreakdown, roundReward, stampedReducer, type Action, type AppState } from './reducer';
 import { emptySave, parseSave } from '../logic/storage';
 import { ALL_FACTS, factsForIsland } from '../logic/facts';
 
@@ -37,16 +37,22 @@ describe('reducer', () => {
     expect(s.save!.facts['2-9'].wrong).toBe(1);
   });
 
-  it('round reward: 1 per correct + 3, +5 for first round of the day', () => {
-    expect(roundReward(8, 0)).toBe(16);
-    expect(roundReward(8, 1)).toBe(11);
-    expect(roundReward(8, 2)).toBe(11);
+  it('round reward: 1 per correct + 6, +5 for first round of the day', () => {
+    expect(roundReward(8, 0)).toBe(19);
+    expect(roundReward(8, 1)).toBe(14);
+    expect(roundReward(8, 2)).toBe(14);
   });
 
   it('from the fourth round of the day the reward is a quarter', () => {
-    expect(roundReward(8, 3)).toBe(3);
+    expect(roundReward(8, 3)).toBe(4);
     expect(roundReward(10, 7)).toBe(4);
-    expect(roundReward(0, 3)).toBe(1);
+    expect(roundReward(0, 3)).toBe(2);
+  });
+
+  it('roundBreakdown explains the total', () => {
+    expect(roundBreakdown(10, 0)).toEqual({ correctStars: 10, roundBonus: 6, firstRoundBonus: 5, reduced: false, total: 21 });
+    expect(roundBreakdown(10, 1)).toEqual({ correctStars: 10, roundBonus: 6, firstRoundBonus: 0, reduced: false, total: 16 });
+    expect(roundBreakdown(10, 3)).toEqual({ correctStars: 10, roundBonus: 6, firstRoundBonus: 0, reduced: true, total: 4 });
   });
 
   it('finishRound pays the reduced reward after three rounds today', () => {
@@ -54,17 +60,17 @@ describe('reducer', () => {
     for (let i = 0; i < 3; i++) s = reducer(s, { type: 'finishRound', correct: 8, today: T });
     const before = s.save!.stars;
     s = reducer(s, { type: 'finishRound', correct: 8, today: T });
-    expect(s.save!.stars - before).toBe(3);
+    expect(s.save!.stars - before).toBe(4);
   });
 
   it('finishRound gives stars, a practice day and the first sticker', () => {
     let s = reducer(started(), { type: 'finishRound', correct: 8, today: T });
-    expect(s.save!.stars).toBe(16);
+    expect(s.save!.stars).toBe(19);
     expect(s.save!.practiceDays).toEqual([T]);
     expect(s.save!.stickers).toContain('eerste-ronde');
     expect(s.newStickers).toEqual(['eerste-ronde']);
     s = reducer(s, { type: 'finishRound', correct: 8, today: T });
-    expect(s.save!.stars).toBe(27);
+    expect(s.save!.stars).toBe(33);
     expect(s.save!.roundsByDay[T]).toBe(2);
     expect(s.newStickers).toEqual([]);
   });

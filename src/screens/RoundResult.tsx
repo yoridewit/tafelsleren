@@ -3,6 +3,7 @@ import { Elf } from '../components/Elf';
 import { Icon } from '../components/Icon';
 import { Celebration } from '../components/Celebration';
 import { useSave } from '../state/store';
+import { roundBreakdown } from '../state/reducer';
 import { say, sound } from '../audio';
 import { phraseText } from '../data/phrases';
 import { celebrationPhrases } from '../components/Celebration';
@@ -20,6 +21,8 @@ interface Props {
 export function RoundResult({ island, correct, total, stars, go }: Props) {
   const { save, today, state } = useSave();
   const roundsToday = save.roundsByDay[today] ?? 0;
+  // `finishRound` is al verwerkt: het aantal rondes van vandaag bevat deze ronde.
+  const breakdown = roundBreakdown(correct, Math.max(0, roundsToday - 1));
   const ratio = correct / total;
   const timeUp = timeUpToday(save, today);
 
@@ -54,6 +57,11 @@ export function RoundResult({ island, correct, total, stars, go }: Props) {
             <span>sterren verdiend</span>
           </div>
         </div>
+        <p className="star-sum">
+          {breakdown.correctStars} goed · ronde af +{breakdown.roundBonus}
+          {breakdown.firstRoundBonus > 0 && ` · eerste ronde van de dag +${breakdown.firstRoundBonus}`}
+          {breakdown.reduced && ' · extra ronde: een kwart van de sterren'}
+        </p>
         {timeUp ? (
           <p className="big">{phraseText('res-tijd-op')}</p>
         ) : roundsToday >= 3 ? (
