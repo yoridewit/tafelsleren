@@ -80,17 +80,21 @@ blijft 4 nieuwe sommen.
 
 ## 6. Sterren
 
-- Bug: na elk goed antwoord staat "+1", maar vanaf de vierde ronde van de dag wordt de ronde-opbrengst
-  afgerond op een kwart (`roundReward`), dus het totaal klopt dan niet met de teller.
-- Oplossing: het "+1" per som wordt alleen getoond in rondes met de volle opbrengst. In rondes met de verlaagde
-  opbrengst blijft het weg; het eindscherm toont het echte totaal.
-- De afrondingsbonus aan het einde van een ronde gaat van 3 naar 6 sterren (`STARS.roundDone`). De bonus voor de
-  eerste ronde van de dag (5) en de regel dat de opbrengst na 3 rondes naar een kwart gaat, blijven.
+Sterren worden pas aan het einde van de ronde bijgeschreven, als totaal. Dat zag Floor niet: ze zag tijdens de ronde
+bij elk goed antwoord "+1", en vanaf de vierde ronde van de dag kreeg ze maar een kwart van het totaal (`roundReward`),
+dus het eindbedrag leek veel te laag.
+
+- Het "+1" per som verdwijnt uit `RoundScreen`. Tijdens de ronde worden geen sterren getoond.
+- Het eindscherm toont het totaal groot ("+21 sterren") met eronder een korte opbouw: "10 goed · ronde af +6 ·
+  eerste ronde van de dag +5". In een ronde met de verlaagde opbrengst staat er "Extra ronde: een kwart van de
+  sterren" bij.
+- De afrondingsbonus gaat van 3 naar 6 (`STARS.roundDone`). De bonus voor de eerste ronde van de dag (5) en de
+  kwartregel vanaf de vierde ronde van de dag blijven zoals ze zijn.
 
 ## Testen
 
 Unit-tests: profiel uit e-mailadres, `parseSave` met en zonder `profileId`, Lucy's startstand (alle sommen van
-eiland 0 gekend, eiland 1 open), de limieten per ronde en per dag per profiel, `roundReward` met 6, de resterende
+eiland 0 gekend, eiland 1 open), de limieten per ronde en per dag per profiel, `roundReward` met 6 en de opbouw van het eindbedrag, de resterende
 tijd voor de timer. Daarna de inlogstroom en de timer in de browser nagelopen.
 
 ## Bekende beperkingen
