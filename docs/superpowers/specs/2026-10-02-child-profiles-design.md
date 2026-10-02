@@ -72,9 +72,9 @@ blijft 4 nieuwe sommen.
 ## 5. Tijdtimer en standaardlimiet
 
 - `emptySave` zet `dailyLimitMinutes` op 10. Bestaande saves behouden hun instelling.
-- Een kleine timer (`TimeChip`) toont de resterende speeltijd van vandaag (`limiet − minutesToday`, als `m:ss`).
+- Een kleine timer (`TimeChip`) toont de resterende speeltijd van vandaag (`limiet − minutesToday`, naar boven afgerond in hele minuten, bijv. "7 min"; de tijd wordt maar elke 20 seconden bijgewerkt, dus een seconde-teller zou springen).
   Hij staat linksboven, in de `TopBar` naast de terugknop, en op het startscherm in de eigen kop. Geen limiet
-  ingesteld: geen timer. Tijd op: toont `0:00`.
+  ingesteld: geen timer. Tijd op: toont `0 min`.
 - Niet op de schermen waar sommen beantwoord worden: `RoundScreen` en `SpeedGame`.
 - De tijd komt uit `timeByDay`, dat al elke seconde bijgehouden wordt; het chipje herrekent elke paar seconden.
 
